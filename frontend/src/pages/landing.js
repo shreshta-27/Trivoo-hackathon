@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import {
@@ -44,8 +45,23 @@ const AnimatedStats = dynamic(() => import('../components/AnimatedStats'), {
     ssr: false,
 });
 
+const AuthModal = dynamic(() => import('../components/AuthModal'), {
+    ssr: false,
+});
+
 export default function LandingPage() {
     const router = useRouter();
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [authView, setAuthView] = useState('login');
+
+    const openAuthModal = (view) => {
+        setAuthView(view);
+        setIsAuthModalOpen(true);
+    };
+
+    const closeAuthModal = () => {
+        setIsAuthModalOpen(false);
+    };
 
     const features = [
         {
@@ -142,10 +158,25 @@ export default function LandingPage() {
                         </motion.div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '2.5rem' }}>
-                            {['Dashboard', 'Reports', 'Community', 'Research'].map((item) => (
+                            {[
+                                { name: 'Information', route: '#information' },
+                                { name: 'Features', route: '#features' },
+                                { name: 'About', route: '#about' },
+                                { name: 'Community', route: '#community' }
+                            ].map((item) => (
                                 <motion.button
-                                    key={item}
-                                    onClick={() => item === 'Dashboard' && router.push('/')}
+                                    key={item.name}
+                                    onClick={() => {
+                                        if (item.route.startsWith('#')) {
+                                            // Smooth scroll to section
+                                            const element = document.querySelector(item.route);
+                                            if (element) {
+                                                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                            }
+                                        } else {
+                                            router.push(item.route);
+                                        }
+                                    }}
                                     style={{
                                         background: 'none',
                                         border: 'none',
@@ -154,11 +185,16 @@ export default function LandingPage() {
                                         fontWeight: '500',
                                         cursor: 'pointer',
                                         position: 'relative',
-                                        padding: '0.5rem 0'
+                                        padding: '0.5rem 0',
+                                        transition: 'color 0.3s ease'
                                     }}
-                                    whileHover={{ color: 'var(--emerald-green)' }}
+                                    whileHover={{
+                                        color: 'var(--emerald-green)',
+                                        scale: 1.05
+                                    }}
+                                    whileTap={{ scale: 0.95 }}
                                 >
-                                    {item}
+                                    {item.name}
                                     <motion.div
                                         style={{
                                             position: 'absolute',
@@ -166,7 +202,7 @@ export default function LandingPage() {
                                             left: 0,
                                             right: 0,
                                             height: '2px',
-                                            background: 'var(--emerald-green)',
+                                            background: 'linear-gradient(90deg, var(--emerald-green), var(--bright-green))',
                                             scaleX: 0,
                                             transformOrigin: 'left'
                                         }}
@@ -177,7 +213,7 @@ export default function LandingPage() {
                             ))}
 
                             <motion.button
-                                onClick={() => router.push('/login')}
+                                onClick={() => openAuthModal('login')}
                                 style={{
                                     padding: '0.625rem 1.25rem',
                                     borderRadius: '10px',
@@ -199,7 +235,7 @@ export default function LandingPage() {
                             </motion.button>
 
                             <motion.button
-                                onClick={() => router.push('/signup')}
+                                onClick={() => openAuthModal('signup')}
                                 className="btn"
                                 style={{
                                     padding: '0.625rem 1.5rem',
@@ -222,7 +258,8 @@ export default function LandingPage() {
                 </nav>
 
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <section style={{
+                    {/* Information Section */}
+                    <section id="information" style={{
                         maxWidth: '1400px',
                         margin: '0 auto',
                         padding: '4rem 2rem 3rem',
@@ -400,7 +437,8 @@ export default function LandingPage() {
                         </div>
                     </section>
 
-                    <section style={{
+                    {/* Features Section */}
+                    <section id="features" style={{
                         maxWidth: '1400px',
                         margin: '0 auto',
                         padding: '3rem 2rem',
@@ -431,7 +469,8 @@ export default function LandingPage() {
                         <AnimatedStats stats={statsData} />
                     </section>
 
-                    <section style={{
+                    {/* About Section */}
+                    <section id="about" style={{
                         maxWidth: '1400px',
                         margin: '0 auto',
                         padding: '4rem 2rem',
@@ -531,7 +570,8 @@ export default function LandingPage() {
                     </section>
                 </div>
 
-                <footer style={{
+                {/* Community/Footer Section */}
+                <footer id="community" style={{
                     borderTop: '1px solid var(--glass-border)',
                     padding: '3rem 0',
                     background: 'var(--glass-dark)',
@@ -569,9 +609,20 @@ export default function LandingPage() {
                                 marginBottom: '1rem',
                                 color: 'var(--text-primary)'
                             }}>Quick Links</h4>
-                            {['Dashboard', 'Reports', 'Community', 'Research'].map(link => (
+                            {[
+                                { name: 'Information', route: '#information' },
+                                { name: 'Features', route: '#features' },
+                                { name: 'About', route: '#about' },
+                                { name: 'Community', route: '#community' }
+                            ].map(link => (
                                 <motion.p
-                                    key={link}
+                                    key={link.name}
+                                    onClick={() => {
+                                        const element = document.querySelector(link.route);
+                                        if (element) {
+                                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                        }
+                                    }}
                                     style={{
                                         fontSize: '0.9375rem',
                                         color: 'var(--text-secondary)',
@@ -581,7 +632,7 @@ export default function LandingPage() {
                                     }}
                                     whileHover={{ color: 'var(--emerald-green)', x: 5 }}
                                 >
-                                    {link}
+                                    {link.name}
                                 </motion.p>
                             ))}
                         </div>
@@ -665,6 +716,13 @@ export default function LandingPage() {
                     </div>
                 </footer>
             </div>
+
+            {/* Authentication Modal */}
+            <AuthModal
+                isOpen={isAuthModalOpen}
+                onClose={closeAuthModal}
+                initialView={authView}
+            />
         </>
     );
 }

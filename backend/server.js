@@ -58,6 +58,7 @@ const io = new Server(httpServer, {
 });
 
 import futureRiskRoutes from './Routes/futureRiskRoutes.js';
+import futurescapeRoutes from './Routes/futurescapeRoutes.js';
 import { runRiskForecastJob } from './Controllers/riskForecastController.js';
 
 // ... (previous code)
@@ -86,6 +87,7 @@ app.use('/api/news', newsRoutes);
 app.use('/api/crops', cropRoutes);
 app.use('/api/planting', plantingRoutes);
 app.use('/api/forecast', futureRiskRoutes);
+app.use('/api/futurescape', futurescapeRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/charts', chartRoutes);
 

@@ -770,3 +770,138 @@ textarea::placeholder {
   animation-delay: 2s;
   animation-duration: 8s;
 }
+
+/* Dashboard-specific animations */
+@keyframes icon-bounce {
+
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-10px) scale(1.1);
+  }
+}
+
+@keyframes icon-rotate-scale {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: rotate(180deg) scale(1.2);
+  }
+
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes severity-pulse-critical {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.4), 0 4px 20px rgba(239, 68, 68, 0.2);
+    transform: scale(1);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(239, 68, 68, 0.6), 0 4px 30px rgba(239, 68, 68, 0.3);
+    transform: scale(1.05);
+  }
+}
+
+@keyframes severity-pulse-high {
+
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.3), 0 4px 15px rgba(245, 158, 11, 0.15);
+  }
+
+  50% {
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.5), 0 4px 25px rgba(245, 158, 11, 0.25);
+  }
+}
+
+@keyframes severity-pulse-medium {
+
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(234, 179, 8, 0.2), 0 4px 10px rgba(234, 179, 8, 0.1);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(234, 179, 8, 0.4), 0 4px 20px rgba(234, 179, 8, 0.2);
+  }
+}
+
+/* Utility classes for dashboard cards */
+.clickable-card {
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.clickable-card:hover {
+  transform: translateY(-8px) scale(1.03);
+}
+
+.clickable-card:active {
+  transform: translateY(-4px) scale(1.01);
+}
+
+.icon-hover-effect {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.icon-hover-effect:hover {
+  animation: icon-rotate-scale 0.6s ease-in-out;
+}
+
+.severity-pulse-critical {
+  animation: severity-pulse-critical 2s ease-in-out infinite;
+}
+
+.severity-pulse-high {
+  animation: severity-pulse-high 2.5s ease-in-out infinite;
+}
+
+.severity-pulse-medium {
+  animation: severity-pulse-medium 3s ease-in-out infinite;
+}
+
+/* Enhanced button ripple effect */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-ripple:active::after {
+  width: 300px;
+  height: 300px;
+}
