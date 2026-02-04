@@ -315,4 +315,32 @@ export const sendLoginEmail = async (userEmail, userName) => {
     }
 };
 
-export default { sendWelcomeEmail, sendLoginEmail };
+export const sendAlertEmail = async (to, subject, htmlBody) => {
+    const transporter = createTransporter();
+
+    const mailOptions = {
+        from: `"Trivoo Alert System" <${process.env.EMAIL_USER}>`,
+        to: to,
+        subject: subject,
+        html: htmlBody
+    };
+
+    try {
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+            console.warn('⚠️ Email credentials missing in .env. Skipping email send.');
+            return { success: true, mocked: true };
+        }
+
+        console.log(`🚨 Attempting to send ALERT email to ${to}...`);
+        const info = await transporter.sendMail(mailOptions);
+        console.log('🚨✅ ALERT EMAIL SENT SUCCESSFULLY!');
+        console.log('🚨 Message ID:', info.messageId);
+        return { success: true, messageId: info.messageId };
+    } catch (error) {
+        console.error('🚨❌ ALERT EMAIL FAILED!');
+        console.error('🚨 Error:', error.message);
+        return { success: false, error: error.message };
+    }
+};
+
+export default { sendWelcomeEmail, sendLoginEmail, sendAlertEmail };

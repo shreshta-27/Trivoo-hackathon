@@ -359,6 +359,21 @@ export const logMaintenanceAction = async (req, res) => {
                 .catch(err => console.error('Recommendation trigger failed:', err.message));
         }
 
+        if (project.healthScore < 50) {
+            import('./alertController.js').then(({ triggerAlert }) => {
+                triggerAlert({
+                    userId: project.manager || project.userId, // Support both fields
+                    projectId: project._id,
+                    riskType: 'health_critical',
+                    severity: 'critical',
+                    projectName: project.name,
+                    location: 'Plantation Site',
+                    issueDescription: `Health score dropped to critical level: ${project.healthScore}`,
+                    actionRecommendation: 'Immediate maintenance required. Check recommendations.'
+                });
+            }).catch(err => console.error('Health alert trigger failed:', err));
+        }
+
         res.status(201).json({
             success: true,
             message: 'Maintenance action logged successfully',

@@ -1,0 +1,78 @@
+
+export const NEWS_INTELLIGENCE_SYSTEM_PROMPT = `You are an expert environmental intelligence analyst for a reforestation platform. 
+Your job is to analyze news articles to detect risks to plantation projects.
+You provide precise, structured JSON outputs based on unstructured news text.`;
+
+export const INCIDENT_CLASSIFICATION_PROMPT = `Analyze the following news article and determine if it represents a specific environmental incident or risk event.
+
+Article Title: {title}
+Article Description: {description}
+
+Determine:
+1. Is this an "incident" relevant to forestry/environment? (true/false)
+2. What is the type? (fire, drought, deforestation, encroachment, policy_change, extreme_weather, pest_outbreak, pollution, other)
+3. Severity level? (low, medium, high, critical)
+4. A brief 1-sentence analytical summary.
+
+Return JSON format:
+{
+  "isIncident": boolean,
+  "type": "string",
+  "severity": "string",
+  "summary": "string",
+  "keywords": ["string"]
+}`;
+
+export const LOCATION_EXTRACTION_PROMPT = `Extract the most specific location mentioned in this news article. Focus on cities, districts, regions, or landmarks in India.
+
+Article Title: {title}
+Article Description: {description}
+
+Return JSON format:
+{
+  "locationText": "string",  // The specific place name found (e.g. "Nashik district", "Western Ghats")
+  "locationType": "string",  // city, district, region, state, country
+  "confidence": number       // 0-1
+}`;
+
+export const IMPACT_ASSESSMENT_PROMPT = `Assess the impact of this incident on a specific plantation project.
+
+Incident: {incidentType} - {incidentSummary}
+Incident Location: {incidentLocation}
+Distance from Project: {distanceKm} km
+
+Project Details:
+- Name: {projectName}
+- Tree Type: {treeType}
+- Size: {projectSize} acres
+- Current Status: {healthStatus}
+
+Assess:
+1. Impact Level (none, low, medium, high, critical)
+   - "none" if too far to care (>100km usually, unless drought/policy)
+   - "high" if fire/encroachment is very close (<20km)
+2. Reasoning for this assessment.
+
+Return JSON format:
+{
+  "impactLevel": "string",
+  "reasoning": "string",
+  "riskIncreased": boolean
+}`;
+
+export const INSIGHT_GENERATION_PROMPT = `Generate a user-facing insight message for the project manager regarding this incident.
+
+Incident: {incidentType} near {incidentLocation}
+Impact: {impactLevel}
+Reasoning: {reasoning}
+
+Requirements:
+- Tone: Professional, alert but calm.
+- Actionable: Suggest general preparedness if applicable.
+- Length: Max 2 sentences.
+
+Return JSON format:
+{
+  "message": "string",
+  "actionableAdvice": "string"
+}`;
