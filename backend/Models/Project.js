@@ -13,7 +13,7 @@ const projectSchema = new mongoose.Schema({
             required: true
         },
         coordinates: {
-            type: [Number], // [longitude, latitude]
+            type: [Number],
             required: true,
             validate: {
                 validator: function (coords) {
@@ -97,18 +97,51 @@ const projectSchema = new mongoose.Schema({
         type: String,
         enum: ['active', 'completed', 'abandoned'],
         default: 'active'
-    }
+    },
+    creationSource: {
+        type: String,
+        enum: ['map_ai_assisted', 'manual_entry'],
+        required: true
+    },
+    initialContext: {
+        aiRecommendation: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'SuitabilityReport'
+        },
+        environmentalSnapshot: {
+            soilType: String,
+            pH: Number,
+            rainfall: Number,
+            temperature: Object
+        }
+    },
+    healthHistory: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'HealthHistory'
+    }],
+    insights: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ProjectInsight'
+    }],
+    maintenanceActions: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'MaintenanceAction'
+    }],
+    simulations: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Simulation'
+    }],
+    lastInsightUpdate: Date,
+    lastMaintenanceDate: Date
 }, {
     timestamps: true
 });
 
-// GeoJSON index for spatial queries
 projectSchema.index({ location: '2dsphere' });
 projectSchema.index({ region: 1 });
 projectSchema.index({ manager: 1 });
 projectSchema.index({ healthScore: -1 });
 
-// Method to calculate project risk based on health score
 projectSchema.methods.calculateProjectRisk = function () {
     if (this.healthScore > 75) {
         this.riskLevel = 'stable';
@@ -122,7 +155,6 @@ projectSchema.methods.calculateProjectRisk = function () {
     return this.riskLevel;
 };
 
-// Pre-save hook to auto-calculate risk level
 projectSchema.pre('save', function (next) {
     if (this.isModified('healthScore')) {
         this.calculateProjectRisk();
@@ -130,14 +162,12 @@ projectSchema.pre('save', function (next) {
     next();
 });
 
-// Static method to get projects by region
 projectSchema.statics.getByRegion = async function (regionId) {
     return await this.find({ region: regionId, status: 'active' })
         .populate('manager', 'name email')
-        .sort({ healthScore: 1 }); // Lowest health first
+        .sort({ healthScore: 1 });
 };
 
-// Static method to get critical projects
 projectSchema.statics.getCriticalProjects = async function () {
     return await this.find({
         riskLevel: { $in: ['high_stress', 'critical_stress'] },

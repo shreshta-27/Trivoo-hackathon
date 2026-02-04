@@ -11,6 +11,7 @@ import authRoutes from "./Routes/authRoutes.js";
 import mapRoutes from './Routes/mapRoutes.js';
 import projectRoutes from './Routes/projectRoutes.js';
 import suitabilityRoutes from './Routes/suitabilityRoutes.js';
+import lifecycleRoutes from './Routes/lifecycleRoutes.js';
 
 dotenv.config();
 
@@ -41,6 +42,7 @@ app.use("/api/auth", authRoutes);
 app.use('/api/map', mapRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/suitability', suitabilityRoutes);
+app.use('/api/lifecycle', lifecycleRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Trivo API is running' });

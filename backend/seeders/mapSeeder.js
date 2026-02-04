@@ -1,9 +1,3 @@
-/**
- * Map Data Seeder
- * Populates database with demo regions, projects, and environmental data
- * Run with: node seeders/mapSeeder.js
- */
-
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Region from '../Models/Region.js';

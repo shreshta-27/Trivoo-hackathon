@@ -1,0 +1,101 @@
+export const PROJECT_INSIGHT_SYSTEM_PROMPT = `You are an expert ecological advisor analyzing reforestation project health and providing actionable insights.
+
+Your role is to:
+1. Analyze changes in project health and environmental conditions
+2. Identify root causes of health changes
+3. Provide clear, actionable recommendations
+4. Explain consequences of inaction
+5. Validate maintenance actions taken by users
+
+Output must be a valid JSON object with this structure:
+{
+  "title": "brief insight title",
+  "description": "detailed description of what's happening",
+  "reasoning": "why this is happening - root cause analysis",
+  "actionNeeded": "specific action required",
+  "urgency": "low" | "medium" | "high" | "critical",
+  "consequences": "what happens if action is not taken",
+  "confidence": number between 0 and 1
+}`;
+
+export const HEALTH_CHANGE_PROMPT = `Analyze the health change in this reforestation project:
+
+PROJECT: {projectName}
+TREE TYPE: {treeType}
+PLANTATION SIZE: {plantationSize}
+
+HEALTH CHANGE:
+- Previous Score: {previousScore}
+- Current Score: {currentScore}
+- Change: {change}
+
+ENVIRONMENTAL FACTORS:
+- Rainfall: {rainfall}mm (change: {rainfallChange})
+- Temperature: {tempMin}°C - {tempMax}°C
+- Active Risks: {activeRisks}
+
+RECENT MAINTENANCE:
+{maintenanceHistory}
+
+Explain why the health score changed and what action is needed.`;
+
+export const MAINTENANCE_FEEDBACK_PROMPT = `Evaluate the effectiveness of this maintenance action:
+
+PROJECT: {projectName}
+ACTION: {actionType}
+DESCRIPTION: {actionDescription}
+PERFORMED: {performedAt}
+
+CONTEXT:
+- Was Recommended: {wasRecommended}
+- Timing: {timingStatus}
+- Health Before: {healthBefore}
+- Health After: {healthAfter}
+
+RECOMMENDATION GIVEN:
+{recommendation}
+
+Provide feedback on the action's effectiveness and suggest improvements.
+
+Output JSON:
+{
+  "effectiveness": "effective" | "partially_effective" | "ineffective",
+  "feedback": "detailed feedback",
+  "suggestions": ["suggestion 1", "suggestion 2"]
+}`;
+
+export const SIMULATION_ANALYSIS_PROMPT = `Analyze this stress scenario simulation:
+
+PROJECT: {projectName}
+SCENARIO: {scenarioType}
+DURATION: {duration} days
+
+PARAMETERS:
+- Rainfall Change: {rainfallChange}%
+- Temperature Change: {temperatureChange}°C
+- Maintenance: {maintenanceFrequency}
+
+CURRENT STATE:
+- Health Score: {currentHealth}
+- Active Risks: {activeRisks}
+
+Project the health trajectory and provide mitigation strategies.
+
+Output JSON:
+{
+  "projectedHealthScore": number,
+  "healthTrajectory": [{"day": number, "score": number, "riskLevel": string}],
+  "risksProjected": ["risk1", "risk2"],
+  "recommendations": ["rec1", "rec2"],
+  "outcome": "description of likely outcome",
+  "reasoning": "why this trajectory is expected",
+  "criticalPoints": ["critical moment 1"],
+  "mitigationStrategies": ["strategy 1"]
+}`;
+
+export default {
+    PROJECT_INSIGHT_SYSTEM_PROMPT,
+    HEALTH_CHANGE_PROMPT,
+    MAINTENANCE_FEEDBACK_PROMPT,
+    SIMULATION_ANALYSIS_PROMPT
+};

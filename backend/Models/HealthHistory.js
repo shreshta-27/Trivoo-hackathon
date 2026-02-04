@@ -1,0 +1,28 @@
+import mongoose from 'mongoose';
+
+const healthHistorySchema = new mongoose.Schema({
+    score: {
+        type: Number,
+        required: true,
+        min: 0,
+        max: 100
+    },
+    riskLevel: {
+        type: String,
+        enum: ['stable', 'medium_stress', 'high_stress', 'critical_stress']
+    },
+    recordedAt: {
+        type: Date,
+        default: Date.now
+    },
+    factors: {
+        rainfall: Number,
+        temperature: Number,
+        maintenanceCount: Number,
+        activeRisksCount: Number
+    }
+});
+
+const HealthHistory = mongoose.model('HealthHistory', healthHistorySchema);
+
+export default HealthHistory;

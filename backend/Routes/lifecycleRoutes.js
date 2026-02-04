@@ -1,0 +1,30 @@
+import express from 'express';
+import {
+    getUserProjects,
+    getProjectLifecycle,
+    createProjectFromMap,
+    createProjectManually,
+    logMaintenanceAction,
+    updateProjectInsights,
+    runSimulation
+} from '../Controllers/lifecycleController.js';
+import { validateLocation } from '../Middlewares/validateLocation.js';
+import { aiRateLimiter, generalRateLimiter } from '../Middlewares/rateLimitAI.js';
+
+const router = express.Router();
+
+router.get('/user/:userId', generalRateLimiter, getUserProjects);
+
+router.get('/:projectId/lifecycle', generalRateLimiter, getProjectLifecycle);
+
+router.post('/create/map', validateLocation, generalRateLimiter, createProjectFromMap);
+
+router.post('/create/manual', validateLocation, generalRateLimiter, createProjectManually);
+
+router.post('/:projectId/maintenance', generalRateLimiter, logMaintenanceAction);
+
+router.post('/:projectId/insights/update', aiRateLimiter, updateProjectInsights);
+
+router.post('/:projectId/simulation', aiRateLimiter, runSimulation);
+
+export default router;
