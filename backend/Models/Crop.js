@@ -1,0 +1,123 @@
+import mongoose from 'mongoose';
+
+const cropSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    scientificName: {
+        type: String
+    },
+    priority: {
+        type: Number,
+        required: true,
+        min: 1,
+        max: 10
+    },
+    description: {
+        type: String,
+        required: true
+    },
+    characteristics: {
+        growthRate: {
+            type: String,
+            enum: ['Very Fast', 'Fast', 'Medium', 'Slow'],
+            required: true
+        },
+        survivalRate: {
+            type: String,
+            enum: ['Very High', 'High', 'Medium', 'Low'],
+            required: true
+        },
+        maintenanceLevel: {
+            type: String,
+            enum: ['Very Low', 'Low', 'Medium', 'High'],
+            required: true
+        },
+        economicValue: {
+            type: String,
+            enum: ['Very High', 'High', 'Medium', 'Low'],
+            required: true
+        }
+    },
+    environmentalRequirements: {
+        rainfall: {
+            min: { type: Number, required: true },
+            max: { type: Number, required: true },
+            unit: { type: String, default: 'mm/year' }
+        },
+        temperature: {
+            min: { type: Number, required: true },
+            max: { type: Number, required: true },
+            unit: { type: String, default: '°C' }
+        },
+        soilTypes: [{
+            type: String,
+            enum: ['Loamy', 'Black', 'Sandy', 'Clay', 'Red', 'Alluvial', 'Laterite']
+        }],
+        waterRequirement: {
+            type: String,
+            enum: ['Very Low', 'Low', 'Medium', 'High', 'Very High'],
+            required: true
+        }
+    },
+    plantationDetails: {
+        growthTimeMonths: {
+            type: Number,
+            required: true
+        },
+        spacingMeters: {
+            type: Number,
+            required: true
+        },
+        idealSeasons: [{
+            type: String,
+            enum: ['Monsoon', 'Winter', 'Summer', 'Post-Monsoon']
+        }]
+    },
+    benefits: {
+        ecological: [String],
+        economic: [String],
+        social: [String]
+    },
+    riskFactors: {
+        drought: {
+            type: String,
+            enum: ['Very Low', 'Low', 'Medium', 'High', 'Very High'],
+            required: true
+        },
+        fire: {
+            type: String,
+            enum: ['Very Low', 'Low', 'Medium', 'High', 'Very High'],
+            required: true
+        },
+        pest: {
+            type: String,
+            enum: ['Very Low', 'Low', 'Medium', 'High', 'Very High'],
+            required: true
+        },
+        disease: {
+            type: String,
+            enum: ['Very Low', 'Low', 'Medium', 'High', 'Very High'],
+            required: true
+        }
+    },
+    useCases: [{
+        type: String,
+        enum: ['Government Projects', 'CSR Initiatives', 'Agroforestry', 'Forest Restoration', 'Soil Stabilization', 'Community Livelihood', 'Commercial Forestry']
+    }],
+    isActive: {
+        type: Boolean,
+        default: true
+    }
+}, {
+    timestamps: true
+});
+
+cropSchema.index({ priority: 1 });
+cropSchema.index({ name: 1 });
+
+const Crop = mongoose.model('Crop', cropSchema);
+
+export default Crop;

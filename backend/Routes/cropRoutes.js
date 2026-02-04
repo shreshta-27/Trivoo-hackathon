@@ -1,0 +1,22 @@
+import express from 'express';
+import {
+    getRecommendations,
+    getAllCrops,
+    getCropById,
+    getRegionRecommendations,
+    compareCrops
+} from '../Controllers/cropRecommendationController.js';
+
+const router = express.Router();
+
+router.get('/recommendations', getRecommendations);
+
+router.get('/region', getRegionRecommendations);
+
+router.get('/crops', getAllCrops);
+
+router.get('/crops/:id', getCropById);
+
+router.post('/compare', compareCrops);
+
+export default router;
