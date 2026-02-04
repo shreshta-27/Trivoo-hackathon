@@ -1,44 +1,430 @@
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '../components/DashboardLayout';
-import { Bot } from 'lucide-react';
+import {
+    Sparkles,
+    Send,
+    Lightbulb,
+} from 'lucide-react';
 
 export default function AIAssistant() {
+    const [messages, setMessages] = useState([]);
+    const [inputValue, setInputValue] = useState('');
+    const [isTyping, setIsTyping] = useState(false);
+    const messagesEndRef = useRef(null);
+    const canvasRef = useRef(null);
+
+    // Context-aware suggestions
+    const suggestions = [
+        "Why is this project at risk?",
+        "What happens if I delay irrigation?",
+        "Explain the health score calculation",
+        "What are the recommended actions?",
+        "How does climate affect my project?",
+        "What's the impact of deforestation nearby?",
+    ];
+
+    // Initial welcome message
+    useEffect(() => {
+        setMessages([
+            {
+                id: 1,
+                type: 'ai',
+                content: "Hello! I'm your AI environmental assistant. I can help you understand your projects, explain system decisions, and provide insights about environmental impacts. What would you like to know?",
+                timestamp: new Date(),
+                confidence: 100,
+            },
+        ]);
+    }, []);
+
+    // Three.js particle animation for background
+    useEffect(() => {
+        if (!canvasRef.current) return;
+
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const colors = ['rgba(139, 92, 246, 0.3)', 'rgba(168, 85, 247, 0.3)', 'rgba(192, 132, 252, 0.3)'];
+
+        for (let i = 0; i < 40; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.3,
+                radius: Math.random() * 2.5 + 0.5,
+                color: colors[Math.floor(Math.random() * colors.length)],
+            });
+        }
+
+        let animationId;
+        const animate = () => {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach((p) => {
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+            });
+
+            animationId = requestAnimationFrame(animate);
+        };
+        animate();
+
+        const handleResize = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        };
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            cancelAnimationFrame(animationId);
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
+
+    // Auto-scroll to bottom
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages, isTyping]);
+
+    const handleSendMessage = async (question) => {
+        if (!question.trim()) return;
+
+        const userMessage = {
+            id: Date.now(),
+            type: 'user',
+            content: question,
+            timestamp: new Date(),
+        };
+
+        setMessages((prev) => [...prev, userMessage]);
+        setInputValue('');
+        setIsTyping(true);
+
+        // Simulate AI response
+        setTimeout(() => {
+            const aiResponse = getAIResponse(question);
+            setMessages((prev) => [...prev, aiResponse]);
+            setIsTyping(false);
+        }, 2000);
+    };
+
+    const getAIResponse = (question) => {
+        const lowerQuestion = question.toLowerCase();
+        let response = '';
+        let confidence = 85;
+
+        if (lowerQuestion.includes('risk') || lowerQuestion.includes('at risk')) {
+            response = "Based on satellite analysis, your Amazon Reforestation Initiative shows a 68% health score due to three primary factors: (1) Soil moisture levels are 40% below optimal range, (2) Recent wildfire activity detected within 5km radius, and (3) Deforestation activity increasing in surrounding areas. I recommend immediate irrigation and enhanced monitoring.";
+            confidence = 92;
+        } else if (lowerQuestion.includes('delay irrigation') || lowerQuestion.includes('irrigation')) {
+            response = "Delaying irrigation by 7+ days would likely decrease your project health score by 15-25 points. Seedling survival rate could drop from 92% to 67%. The most vulnerable areas are sectors 3 and 7, where soil moisture is already critical. I recommend maintaining current irrigation schedule or increasing frequency.";
+            confidence = 87;
+        } else if (lowerQuestion.includes('health score') || lowerQuestion.includes('calculation')) {
+            response = "The health score is calculated using a weighted algorithm that considers: (1) Soil moisture levels (30%), (2) Vegetation density from satellite imagery (25%), (3) Temperature and climate conditions (20%), (4) Proximity to environmental threats (15%), and (5) Historical growth patterns (10%). Your current score of 92% indicates excellent project health.";
+            confidence = 95;
+        } else if (lowerQuestion.includes('recommended actions') || lowerQuestion.includes('actions')) {
+            response = "Based on current conditions, I recommend: (1) Increase irrigation in sector 3 to improve survival rate by 15%, (2) Deploy fire monitoring sensors in high-risk zones, (3) Schedule coral health assessment for bleaching zones, and (4) Implement early warning system for deforestation detection. These actions are prioritized by impact and urgency.";
+            confidence = 88;
+        } else if (lowerQuestion.includes('climate') || lowerQuestion.includes('affect')) {
+            response = "Climate significantly impacts your project through temperature variations, rainfall patterns, and extreme weather events. Current analysis shows: (1) Rising temperatures affecting seedling growth rates, (2) Irregular rainfall causing soil moisture fluctuations, and (3) Increased frequency of heatwaves. I recommend implementing climate-adaptive strategies and diversifying species selection.";
+            confidence = 90;
+        } else if (lowerQuestion.includes('deforestation')) {
+            response = "Satellite monitoring has detected increased deforestation activity within 10km of your project boundaries. This poses risks including: (1) Habitat fragmentation affecting biodiversity, (2) Increased edge effects on your conservation area, and (3) Potential for illegal logging expansion. I recommend enhanced perimeter monitoring and coordination with local authorities.";
+            confidence = 86;
+        } else {
+            response = "I understand you're asking about environmental insights. Could you please be more specific? I can help you with project risk analysis, health score explanations, impact predictions, recommended actions, climate effects, or any other environmental questions related to your projects.";
+            confidence = 75;
+        }
+
+        return {
+            id: Date.now() + 1,
+            type: 'ai',
+            content: response,
+            timestamp: new Date(),
+            confidence,
+        };
+    };
+
+    const handleSuggestionClick = (suggestion) => {
+        handleSendMessage(suggestion);
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage(inputValue);
+        }
+    };
+
     return (
         <DashboardLayout activePage="ai-assistant">
-            <div style={{ maxWidth: '1400px', margin: '0 auto', textAlign: 'center', paddingTop: '4rem' }}>
+            {/* Background Canvas */}
+            <canvas
+                ref={canvasRef}
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    pointerEvents: 'none',
+                    zIndex: 0,
+                    opacity: 0.4,
+                }}
+            />
+
+            <div style={{ maxWidth: '900px', margin: '0 auto', position: 'relative', zIndex: 1, height: 'calc(100vh - 60px)', display: 'flex', flexDirection: 'column', paddingBottom: '1rem' }}>
+                {/* Header */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    style={{ marginBottom: '1rem', flexShrink: 0 }}
+                    initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <div style={{
-                        width: '80px',
-                        height: '80px',
-                        borderRadius: '20px',
-                        background: 'linear-gradient(135deg, var(--emerald-green), var(--bright-green))',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        margin: '0 auto 2rem',
-                        boxShadow: '0 8px 32px rgba(16, 185, 129, 0.4)',
-                    }}>
-                        <Bot style={{ width: '40px', height: '40px', color: '#ffffff' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                        <motion.div
+                            style={{
+                                width: '48px',
+                                height: '48px',
+                                borderRadius: '12px',
+                                background: 'linear-gradient(135deg, #8b5cf6, #a78bfa)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                            whileHover={{ scale: 1.1, rotate: 5 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                        >
+                            <Sparkles style={{ width: '24px', height: '24px', color: '#fff' }} />
+                        </motion.div>
+                        <h1
+                            style={{
+                                fontSize: '2rem',
+                                fontWeight: '700',
+                                background: 'linear-gradient(135deg, var(--text-primary), #8b5cf6)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                backgroundClip: 'text',
+                            }}
+                        >
+                            AI Assistant
+                        </h1>
                     </div>
-                    <h1 style={{
-                        fontSize: '2.5rem',
-                        fontWeight: '700',
-                        marginBottom: '1rem',
-                        background: 'linear-gradient(135deg, var(--text-primary), var(--emerald-green))',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text',
-                    }}>
-                        AI Assistant
-                    </h1>
-                    <p style={{ fontSize: '1.125rem', color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto' }}>
-                        Intelligent environmental analysis and insights assistant coming soon.
+                    <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', marginLeft: '64px' }}>
+                        Ask me anything about your projects and environmental insights
                     </p>
                 </motion.div>
+
+                {/* Suggestion Chips */}
+                <motion.div
+                    style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '0.75rem',
+                        marginBottom: '1rem',
+                        flexShrink: 0,
+                    }}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2, duration: 0.5 }}
+                >
+                    {suggestions.map((suggestion, index) => (
+                        <motion.button
+                            key={index}
+                            onClick={() => handleSuggestionClick(suggestion)}
+                            style={{
+                                padding: '0.625rem 1rem',
+                                borderRadius: '20px',
+                                background: 'rgba(139, 92, 246, 0.1)',
+                                border: '1px solid rgba(139, 92, 246, 0.3)',
+                                color: '#8b5cf6',
+                                fontSize: '0.875rem',
+                                fontWeight: '500',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                            }}
+                            whileHover={{
+                                scale: 1.05,
+                                background: 'rgba(139, 92, 246, 0.2)',
+                                y: -2,
+                            }}
+                            whileTap={{ scale: 0.95 }}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 + index * 0.05 }}
+                        >
+                            <Lightbulb style={{ width: '14px', height: '14px' }} />
+                            {suggestion}
+                        </motion.button>
+                    ))}
+                </motion.div>
+
+                {/* Chat Container */}
+                <div
+                    className="glass-card"
+                    style={{
+                        flex: 1,
+                        padding: '1.5rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden',
+                    }}
+                >
+                    {/* Messages */}
+                    <div
+                        style={{
+                            flex: 1,
+                            overflowY: 'auto',
+                            marginBottom: '1rem',
+                            paddingRight: '0.5rem',
+                        }}
+                    >
+                        <AnimatePresence>
+                            {messages.map((message) => (
+                                <motion.div
+                                    key={message.id}
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start',
+                                        marginBottom: '1rem',
+                                    }}
+                                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                                >
+                                    <div
+                                        style={{
+                                            maxWidth: '75%',
+                                            padding: '1rem 1.25rem',
+                                            borderRadius: message.type === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                                            background: message.type === 'user'
+                                                ? 'linear-gradient(135deg, var(--emerald-green), var(--bright-green))'
+                                                : 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(168, 85, 247, 0.1))',
+                                            border: message.type === 'user' ? 'none' : '1px solid rgba(139, 92, 246, 0.3)',
+                                            color: message.type === 'user' ? '#ffffff' : 'var(--text-primary)',
+                                        }}
+                                    >
+                                        <p style={{ fontSize: '0.95rem', lineHeight: '1.5', marginBottom: message.type === 'ai' ? '0.5rem' : 0 }}>
+                                            {message.content}
+                                        </p>
+                                        {message.type === 'ai' && message.confidence && (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                                <Sparkles style={{ width: '12px', height: '12px', color: '#8b5cf6' }} />
+                                                <span style={{ fontSize: '0.75rem', color: '#8b5cf6', fontWeight: '600' }}>
+                                                    {message.confidence}% Confidence
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+
+                        {/* Typing Indicator */}
+                        {isTyping && (
+                            <motion.div
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'flex-start',
+                                    marginBottom: '1rem',
+                                }}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                            >
+                                <div
+                                    style={{
+                                        padding: '1rem 1.25rem',
+                                        borderRadius: '18px 18px 18px 4px',
+                                        background: 'rgba(139, 92, 246, 0.15)',
+                                        border: '1px solid rgba(139, 92, 246, 0.3)',
+                                        display: 'flex',
+                                        gap: '0.5rem',
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    {[0, 1, 2].map((i) => (
+                                        <motion.div
+                                            key={i}
+                                            style={{
+                                                width: '8px',
+                                                height: '8px',
+                                                borderRadius: '50%',
+                                                background: '#8b5cf6',
+                                            }}
+                                            animate={{ y: [0, -8, 0] }}
+                                            transition={{
+                                                duration: 0.6,
+                                                repeat: Infinity,
+                                                delay: i * 0.15,
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    {/* Message Input */}
+                    <div style={{ display: 'flex', gap: '0.75rem', flexShrink: 0 }}>
+                        <input
+                            type="text"
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            onKeyPress={handleKeyPress}
+                            placeholder="Ask me anything..."
+                            disabled={isTyping}
+                            style={{
+                                flex: 1,
+                                padding: '0.875rem 1.25rem',
+                                borderRadius: '12px',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                border: '1px solid var(--glass-border)',
+                                color: 'var(--text-primary)',
+                                fontSize: '0.95rem',
+                                outline: 'none',
+                            }}
+                        />
+                        <motion.button
+                            onClick={() => handleSendMessage(inputValue)}
+                            disabled={!inputValue.trim() || isTyping}
+                            style={{
+                                padding: '0.875rem 1.25rem',
+                                borderRadius: '12px',
+                                background: inputValue.trim() && !isTyping
+                                    ? 'linear-gradient(135deg, #8b5cf6, #a78bfa)'
+                                    : 'rgba(255, 255, 255, 0.1)',
+                                border: 'none',
+                                color: '#ffffff',
+                                cursor: inputValue.trim() && !isTyping ? 'pointer' : 'not-allowed',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                            whileHover={inputValue.trim() && !isTyping ? { scale: 1.05 } : {}}
+                            whileTap={inputValue.trim() && !isTyping ? { scale: 0.95 } : {}}
+                        >
+                            <Send style={{ width: '18px', height: '18px' }} />
+                        </motion.button>
+                    </div>
+                </div>
             </div>
         </DashboardLayout>
     );

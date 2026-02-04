@@ -57,20 +57,27 @@ export default function Sidebar({ activePage = 'dashboard' }) {
                 onClick={() => router.push('/dashboard')}
                 whileHover={{ scale: 1.05 }}
             >
-                <div
+                <motion.div
                     style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '10px',
-                        background: 'linear-gradient(135deg, var(--emerald-green), var(--bright-green))',
+                        width: '48px',
+                        height: '48px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: '0 4px 16px rgba(16, 185, 129, 0.4)',
                     }}
+                    whileHover={{ rotate: 360 }}
+                    transition={{ duration: 0.8, ease: 'easeInOut' }}
                 >
-                    <Leaf style={{ width: '22px', height: '22px', color: '#ffffff' }} />
-                </div>
+                    <img
+                        src="/logo.svg"
+                        alt="Trivo Logo"
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            filter: 'drop-shadow(0 4px 16px rgba(16, 185, 129, 0.4))',
+                        }}
+                    />
+                </motion.div>
                 <span
                     style={{
                         fontSize: '1.5rem',
