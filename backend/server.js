@@ -3,13 +3,16 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import session from 'express-session';
 import connectDB from './Config/db.js';
+import passport, { configurePassport } from './Config/passport.js';
 import userRoutes from './Routes/userRoutes.js';
 import authRoutes from "./Routes/authRoutes.js";
 
 dotenv.config();
 
 connectDB();
+configurePassport();
 
 const app = express();
 
@@ -21,6 +24,14 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(session({
+    secret: process.env.JWT_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false }
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use('/api/users', userRoutes);
 app.use("/api/auth", authRoutes);
