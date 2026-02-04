@@ -1,7 +1,7 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import User from '../Models/userSchema.js';
-import { sendWelcomeEmail } from '../utils/emailService.js';
+import { sendWelcomeEmail, sendLoginEmail } from '../utils/emailService.js';
 
 export const configurePassport = () => {
     passport.use(new GoogleStrategy({
@@ -27,11 +27,21 @@ export const configurePassport = () => {
                         profession: 'manager',
                         role: 'manager'
                     });
-                    await sendWelcomeEmail(user.email, user.name);
+                    try {
+                        await sendWelcomeEmail(user.email, user.name);
+                    } catch (emailError) {
+                        console.error(`❌ Failed to send welcome email to ${user.email}:`, emailError.message);
+                    }
                 } else if (!user.googleId) {
                     user.googleId = googleId;
                     user.avatar = user.avatar || avatar;
                     await user.save();
+                } else {
+                    try {
+                        await sendLoginEmail(user.email, user.name);
+                    } catch (emailError) {
+                        console.error(`Failed to send login email:`, emailError.message);
+                    }
                 }
 
                 return done(null, user);

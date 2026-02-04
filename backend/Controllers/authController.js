@@ -1,7 +1,7 @@
 import User from "../Models/userSchema.js";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
-import { sendWelcomeEmail } from '../utils/emailService.js';
+import { sendWelcomeEmail, sendLoginEmail } from '../utils/emailService.js';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -29,15 +29,23 @@ export const googleLogin = async (req, res) => {
                 profession: 'manager',
                 role: 'manager'
             });
-            await sendWelcomeEmail(user.email, user.name);
+            try {
+                await sendWelcomeEmail(user.email, user.name);
+            } catch (emailError) {
+                console.error(`Failed to send welcome email:`, emailError.message);
+            }
         } else if (!user.googleId) {
-            // Link Google account to existing user
             user.googleId = googleId;
             user.avatar = user.avatar || picture;
             await user.save();
+        } else {
+            try {
+                await sendLoginEmail(user.email, user.name);
+            } catch (emailError) {
+                console.error(`Failed to send login email:`, emailError.message);
+            }
         }
 
-        // Generate JWT
         const jwtToken = jwt.sign(
             { id: user._id, role: user.role },
             process.env.JWT_SECRET,
