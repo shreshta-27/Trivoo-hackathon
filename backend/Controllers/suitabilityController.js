@@ -1,16 +1,7 @@
-/**
- * Suitability Controller
- * Handles AI-powered plantation suitability analysis
- */
-
 import SuitabilityReport from '../Models/SuitabilityReport.js';
 import { getEnvironmentalContext } from '../utils/environmentalDataService.js';
 import { analyzeSuitability } from '../aiAgents/suitabilityAgent.js';
 
-/**
- * Evaluate plantation suitability for a new project
- * @route POST /api/suitability/evaluate
- */
 export const evaluateSuitability = async (req, res) => {
     try {
         const {
@@ -58,22 +49,89 @@ export const evaluateSuitability = async (req, res) => {
         console.log(`\n📍 Suitability evaluation requested for: ${projectName}`);
         console.log(`Location: ${latitude}, ${longitude}`);
 
-        // Step 1: Fetch environmental context
+        const CACHE_RADIUS_METERS = 500;
+        const CACHE_VALIDITY_DAYS = 30;
+
+        const cachedReport = await SuitabilityReport.findOne({
+            location: {
+                $near: {
+                    $geometry: {
+                        type: "Point",
+                        coordinates: [longitude, latitude]
+                    },
+                    $maxDistance: CACHE_RADIUS_METERS
+                }
+            },
+            'projectDetails.treeType': treeType,
+            'projectDetails.plantationSize': {
+                $gte: plantationSize * 0.8,
+                $lte: plantationSize * 1.2
+            },
+            createdAt: {
+                $gt: new Date(Date.now() - CACHE_VALIDITY_DAYS * 24 * 60 * 60 * 1000)
+            }
+        }).sort({ createdAt: -1 });
+
+        if (cachedReport) {
+            console.log(`⚡ CACHE HIT: Using existing report from ${cachedReport.createdAt.toISOString()}`);
+            console.log(`   Original Project: ${cachedReport.projectDetails.name}`);
+
+            const newReport = await SuitabilityReport.create({
+                user: userId || req.user?._id,
+                location: {
+                    type: 'Point',
+                    coordinates: [longitude, latitude]
+                },
+                projectDetails: {
+                    name: projectName,
+                    plantationSize,
+                    treeType
+                },
+                environmentalContext: cachedReport.environmentalContext,
+                suitabilityStatus: cachedReport.suitabilityStatus,
+                reasoning: cachedReport.reasoning,
+                recommendations: {
+                    ...cachedReport.recommendations,
+                    estimatedLabor: Math.ceil(plantationSize / 100),
+                    estimatedCost: plantationSize * 50
+                },
+                riskWarnings: cachedReport.riskWarnings,
+                aiMetadata: {
+                    ...cachedReport.aiMetadata,
+                    model: cachedReport.aiMetadata?.model + ' (cached)',
+                    processingTime: 0
+                }
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: 'Suitability analysis completed (from cache)',
+                data: {
+                    reportId: newReport._id,
+                    suitabilityStatus: newReport.suitabilityStatus,
+                    reasoning: newReport.reasoning,
+                    recommendations: newReport.recommendations,
+                    riskWarnings: newReport.riskWarnings,
+                    environmentalContext: newReport.environmentalContext,
+                    aiMetadata: newReport.aiMetadata
+                }
+            });
+        }
+
+        console.log('💨 CACHE MISS: Proceeding with fresh analysis...');
+
         const environmentalContext = await getEnvironmentalContext(longitude, latitude);
 
         console.log(`✓ Environmental data fetched (${environmentalContext.dataSource})`);
 
-        // Step 2: Prepare project details
         const projectDetails = {
             name: projectName,
             plantationSize,
             treeType
         };
 
-        // Step 3: Run AI analysis using LangGraph agent
         const recommendation = await analyzeSuitability(projectDetails, environmentalContext);
 
-        // Step 4: Save report to database
         const report = await SuitabilityReport.create({
             user: userId || req.user?._id,
             location: {

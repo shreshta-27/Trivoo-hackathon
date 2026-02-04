@@ -6,15 +6,76 @@
 import { StateGraph, END } from "@langchain/langgraph";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { SYSTEM_PROMPT, ANALYSIS_PROMPT_TEMPLATE } from "./prompts/suitabilityPrompts.js";
+// import { SYSTEM_PROMPT, ANALYSIS_PROMPT_TEMPLATE } from "./prompts/suitabilityPrompts.js";
 import { checkSoilCompatibility } from "../utils/environmentalDataService.js";
 
-// Initialize the LLM
-const initializeLLM = () => {
+const SYSTEM_PROMPT = `You are an expert agricultural and forestry advisor specializing in plantation suitability analysis for reforestation projects in India.
+Your role is to evaluate whether a proposed plantation project is viable at a specific location based on environmental data.
+You must provide:
+1. Clear suitability assessment (suitable, suitable_with_caution, or not_recommended)
+2. Detailed reasoning explaining your decision
+3. Specific fertilizer recommendations
+4. Care duration and instructions
+5. Risk warnings with mitigation strategies
+Output your response as a valid JSON object with this exact structure:
+{
+  "suitabilityStatus": "suitable" | "suitable_with_caution" | "not_recommended",
+  "reasoning": "detailed explanation of your decision",
+  "fertilizers": [{ "name": "...", "type": "...", "applicationRate": "...", "frequency": "..." }],
+  "careDuration": number,
+  "careInstructions": ["..."],
+  "irrigationNeeds": "low" | "moderate" | "high",
+  "riskWarnings": [{ "type": "...", "severity": "...", "description": "...", "mitigation": "..." }],
+  "confidence": number
+}`;
+
+const ANALYSIS_PROMPT_TEMPLATE = `Analyze the suitability of the following plantation project:
+PROJECT DETAILS:
+- Project Name: {projectName}
+- Location: Latitude {latitude}, Longitude {longitude}
+- Plantation Size: {plantationSize} trees
+- Tree Type: {treeType}
+ENVIRONMENTAL CONTEXT:
+Soil Data:
+- Type: {soilType}
+- pH: {soilPH}
+- Organic Matter: {organicMatter}%
+- Drainage: {drainage}
+Climate Data:
+- Average Rainfall: {rainfall} mm/year
+- Temperature Range: {tempMin}°C to {tempMax}°C
+- Humidity: {humidity}%
+- Climate Zone: {climateZone}
+Known Risk Factors:
+{riskFactors}
+ANALYSIS REQUIREMENTS:
+1. Evaluate if the soil type and pH are compatible with {treeType}
+2. Assess if rainfall and temperature are adequate
+3. Consider the plantation size - larger plantations need more resources
+4. Identify potential risks based on climate and location
+5. Recommend appropriate fertilizers (prefer organic when possible)
+6. Estimate initial care duration
+7. Provide specific, actionable care instructions
+Provide your analysis as a valid JSON object.`;
+
+// Fallback models in priority order
+const FALLBACK_MODELS = [
+    "gemini-2.0-flash",
+    "gemini-flash-latest",
+    "gemini-pro-latest"
+];
+
+// Initialize the LLM with fallback support
+const initializeLLM = (modelNameOverride) => {
+    const modelName = modelNameOverride || process.env.AI_MODEL || FALLBACK_MODELS[0];
+    const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+
     return new ChatGoogleGenerativeAI({
-        modelName: process.env.AI_MODEL || "gemini-pro",
+        modelName: modelName,
+        model: modelName,
         temperature: parseFloat(process.env.AI_TEMPERATURE) || 0.3,
-        apiKey: process.env.GOOGLE_API_KEY
+        apiKey: apiKey,
+        maxRetries: 1
     });
 };
 
@@ -82,80 +143,107 @@ const environmentalAnalysisNode = async (state) => {
  * Uses LLM to perform multi-factor reasoning
  */
 const suitabilityReasonerNode = async (state) => {
-    try {
-        const { projectDetails, environmentalContext } = state;
-        const { soil, climate, risks } = environmentalContext;
+    const { projectDetails, environmentalContext } = state;
+    const { soil, climate, risks } = environmentalContext;
 
-        // Format risk factors for prompt
-        const riskFactorsText = risks.map(r =>
-            `- ${r.type}: ${r.probability} probability during ${r.season}`
-        ).join('\n');
+    // Format risk factors for prompt
+    const riskFactorsText = risks.map(r =>
+        `- ${r.type}: ${r.probability} probability during ${r.season}`
+    ).join('\n');
 
-        // Build the analysis prompt
-        const analysisPrompt = ANALYSIS_PROMPT_TEMPLATE
-            .replace('{projectName}', projectDetails.name)
-            .replace('{latitude}', environmentalContext.location.latitude)
-            .replace('{longitude}', environmentalContext.location.longitude)
-            .replace('{plantationSize}', projectDetails.plantationSize)
-            .replace('{treeType}', projectDetails.treeType)
-            .replace('{soilType}', soil.type)
-            .replace('{soilPH}', soil.pH)
-            .replace('{organicMatter}', soil.organicMatter || 'N/A')
-            .replace('{drainage}', soil.drainage)
-            .replace('{rainfall}', climate.averageRainfall)
-            .replace('{tempMin}', climate.temperatureRange.min)
-            .replace('{tempMax}', climate.temperatureRange.max)
-            .replace('{humidity}', climate.humidity)
-            .replace('{climateZone}', climate.climateZone)
-            .replace('{riskFactors}', riskFactorsText || 'No significant risks identified');
+    // Build the analysis prompt
+    const analysisPrompt = ANALYSIS_PROMPT_TEMPLATE
+        .replace('{projectName}', projectDetails.name)
+        .replace('{latitude}', environmentalContext.location.latitude)
+        .replace('{longitude}', environmentalContext.location.longitude)
+        .replace('{plantationSize}', projectDetails.plantationSize)
+        .replace('{treeType}', projectDetails.treeType)
+        .replace('{soilType}', soil.type)
+        .replace('{soilPH}', soil.pH)
+        .replace('{organicMatter}', soil.organicMatter || 'N/A')
+        .replace('{drainage}', soil.drainage)
+        .replace('{rainfall}', climate.averageRainfall)
+        .replace('{tempMin}', climate.temperatureRange.min)
+        .replace('{tempMax}', climate.temperatureRange.max)
+        .replace('{humidity}', climate.humidity)
+        .replace('{climateZone}', climate.climateZone)
+        .replace('{riskFactors}', riskFactorsText || 'No significant risks identified');
 
-        state.analysisPrompt = analysisPrompt;
+    state.analysisPrompt = analysisPrompt;
 
-        // Call LLM
-        const llm = initializeLLM();
-        const startTime = Date.now();
+    // Try models in sequence until one works
+    let lastError = null;
+    let success = false;
+    let llmOutput = null;
+    let processingTime = 0;
 
-        const messages = [
-            new SystemMessage(SYSTEM_PROMPT),
-            new HumanMessage(analysisPrompt)
-        ];
+    // Environment model first, then fallbacks
+    const modelsToTry = process.env.AI_MODEL
+        ? [process.env.AI_MODEL, ...FALLBACK_MODELS]
+        : FALLBACK_MODELS;
 
-        const response = await llm.invoke(messages);
-        const processingTime = Date.now() - startTime;
+    // Remove duplicates
+    const uniqueModels = [...new Set(modelsToTry)];
 
-        // Parse LLM response
-        let llmOutput;
+    console.log(`Starting LLM analysis with ${uniqueModels.length} candidate models...`);
+
+    for (const modelName of uniqueModels) {
         try {
-            // Extract JSON from response (handle markdown code blocks)
-            let content = response.content;
-            if (content.includes('```json')) {
-                content = content.split('```json')[1].split('```')[0].trim();
-            } else if (content.includes('```')) {
-                content = content.split('```')[1].split('```')[0].trim();
+            console.log(`Trying model: ${modelName}`);
+            const llm = initializeLLM(modelName);
+            const startTime = Date.now();
+
+            const messages = [
+                new SystemMessage(SYSTEM_PROMPT),
+                new HumanMessage(analysisPrompt)
+            ];
+
+            const response = await llm.invoke(messages);
+            processingTime = Date.now() - startTime;
+
+            // Parse LLM response
+            try {
+                // Extract JSON from response (handle markdown code blocks)
+                let content = response.content;
+                if (content.includes('```json')) {
+                    content = content.split('```json')[1].split('```')[0].trim();
+                } else if (content.includes('```')) {
+                    content = content.split('```')[1].split('```')[0].trim();
+                }
+
+                llmOutput = JSON.parse(content);
+                success = true;
+                console.log(`✓ Model ${modelName} succeeded!`);
+                break; // Exit loop on success
+            } catch (parseError) {
+                console.warn(`Failed to parse JSON from ${modelName}, trying next...`);
+                lastError = parseError;
+                continue;
             }
-
-            llmOutput = JSON.parse(content);
-        } catch (parseError) {
-            console.error("Failed to parse LLM response:", response.content);
-            throw new Error("LLM response is not valid JSON");
+        } catch (error) {
+            console.warn(`Model ${modelName} failed: ${error.message}`);
+            lastError = error;
         }
+    }
 
-        state.llmResponse = {
-            ...llmOutput,
-            processingTime
-        };
-
-        console.log("✓ LLM analysis completed");
-        console.log(`  Status: ${llmOutput.suitabilityStatus}`);
-        console.log(`  Confidence: ${llmOutput.confidence}`);
-        console.log(`  Processing time: ${processingTime}ms`);
-
-        return state;
-    } catch (error) {
-        state.errors.push(`LLM reasoning error: ${error.message}`);
-        console.error("LLM Error:", error);
+    if (!success) {
+        const errorMsg = `All models failed. Last error: ${lastError?.message}`;
+        console.error("❌ " + errorMsg);
+        state.errors.push(errorMsg);
         return state;
     }
+
+    state.llmResponse = {
+        ...llmOutput,
+        processingTime
+    };
+
+    console.log("✓ LLM analysis completed");
+    console.log(`  Status: ${llmOutput.suitabilityStatus}`);
+    console.log(`  Confidence: ${llmOutput.confidence}`);
+    console.log(`  Processing time: ${processingTime}ms`);
+
+    return state;
 };
 
 /**
@@ -287,15 +375,15 @@ const buildSuitabilityWorkflow = () => {
     workflow.addNode("environmentalAnalysis", environmentalAnalysisNode);
     workflow.addNode("suitabilityReasoner", suitabilityReasonerNode);
     workflow.addNode("carePlanGenerator", carePlanGeneratorNode);
-    workflow.addNode("finalRecommendation", finalRecommendationNode);
+    workflow.addNode("recommendationGenerator", finalRecommendationNode);
 
     // Define edges (workflow flow)
     workflow.addEdge("__start__", "inputContext");
     workflow.addEdge("inputContext", "environmentalAnalysis");
     workflow.addEdge("environmentalAnalysis", "suitabilityReasoner");
     workflow.addEdge("suitabilityReasoner", "carePlanGenerator");
-    workflow.addEdge("carePlanGenerator", "finalRecommendation");
-    workflow.addEdge("finalRecommendation", "__end__");
+    workflow.addEdge("carePlanGenerator", "recommendationGenerator");
+    workflow.addEdge("recommendationGenerator", "__end__");
 
     return workflow.compile();
 };
