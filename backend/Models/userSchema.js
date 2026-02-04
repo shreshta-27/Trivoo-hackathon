@@ -36,13 +36,13 @@ const userSchema = new mongoose.Schema({
     profession: {
         type: String,
         required: [true, 'Profession is required'],
-        enum: ['ngo', 'forest officer', 'admin', 'manager', 'field_officer'],
-        lowercase: true
-    },
-    role: {
-        type: String,
-        enum: ['admin', 'manager', 'field_officer'],
-        default: 'manager'
+        enum: [
+            'Government / Forest Department Officials',
+            'NGOs & Environmental Organization',
+            'CSR / Corporate Sustainability Teams',
+            'Field Officers / Ground Staff',
+            'System Admin'
+        ]
     }
 }, {
     timestamps: true

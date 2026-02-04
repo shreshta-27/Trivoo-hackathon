@@ -1,0 +1,10 @@
+{
+    "userId": "PLACEHOLDER_USER_ID",
+    "projectId": "PLACEHOLDER_PROJECT_ID",
+    "riskType": "health_critical",
+    "severity": "critical",
+    "projectName": "Test Plantation - Critical Alert",
+    "location": "Pune, Maharashtra",
+    "issueDescription": "Critical health decline detected in plantation. Soil moisture levels critically low and pest infestation spreading rapidly. Immediate intervention required to prevent complete plantation failure.",
+    "actionRecommendation": "URGENT: Apply emergency irrigation immediately. Deploy pest control measures within 24 hours. Monitor soil moisture daily."
+}

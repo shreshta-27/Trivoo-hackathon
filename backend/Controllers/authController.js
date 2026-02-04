@@ -26,8 +26,7 @@ export const googleLogin = async (req, res) => {
                 email,
                 googleId,
                 avatar: picture,
-                profession: 'manager',
-                role: 'manager'
+                profession: 'System Admin'
             });
             try {
                 await sendWelcomeEmail(user.email, user.name);
@@ -47,7 +46,7 @@ export const googleLogin = async (req, res) => {
         }
 
         const jwtToken = jwt.sign(
-            { id: user._id, role: user.role },
+            { id: user._id, profession: user.profession },
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         );
