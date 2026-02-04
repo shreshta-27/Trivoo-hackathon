@@ -132,6 +132,78 @@ export const evaluateSuitability = async (req, res) => {
 
         const recommendation = await analyzeSuitability(projectDetails, environmentalContext);
 
+        // --- Data Sanitization Block ---
+        const parseLooseJson = (str) => {
+            if (typeof str !== 'string') return str;
+            const cleanStr = str.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+            try {
+                return JSON.parse(cleanStr);
+            } catch (e) {
+                try {
+                    return new Function('return ' + cleanStr)();
+                } catch (e2) {
+                    // console.error("Failed to parse loose JSON:", cleanStr);
+                    return [];
+                }
+            }
+        };
+
+        const sanitizeArray = (val) => {
+            if (!val) return [];
+            // If it's a string, parse it
+            if (typeof val === 'string') {
+                const parsed = parseLooseJson(val);
+                return Array.isArray(parsed) ? parsed : [];
+            }
+            // If it's an array, check elements for nested stringification
+            if (Array.isArray(val)) {
+                return val.map(item => {
+                    if (typeof item === 'string') {
+                        const clean = item.trim();
+                        // Heuristic: starts with [ or { implies object/array structure
+                        if (clean.startsWith('{') || clean.startsWith('[')) {
+                            const parsed = parseLooseJson(clean);
+                            return parsed; // Map returns the parsed object/array
+                        }
+                    }
+                    return item; // Return as is if not a JSON-string
+                }).flat(); // Flatten in case we parsed an array within the array
+            }
+            return [];
+        };
+
+        const sanitizedRecommendations = {
+            fertilizers: [],
+            careDuration: recommendation.careDuration || 0,
+            careInstructions: [],
+            irrigationNeeds: recommendation.irrigationNeeds || 'moderate',
+            estimatedLabor: Math.ceil(plantationSize / 100),
+            estimatedCost: plantationSize * 50
+        };
+
+        // Extract from recommendation object (handling nesting)
+        if (recommendation.recommendations) {
+            sanitizedRecommendations.fertilizers = sanitizeArray(recommendation.recommendations.fertilizers);
+            sanitizedRecommendations.careInstructions = sanitizeArray(recommendation.recommendations.careInstructions);
+
+            if (recommendation.recommendations.careDuration) sanitizedRecommendations.careDuration = recommendation.recommendations.careDuration;
+            if (recommendation.recommendations.irrigationNeeds) sanitizedRecommendations.irrigationNeeds = recommendation.recommendations.irrigationNeeds;
+        } else {
+            // Fallback for flat structure
+            sanitizedRecommendations.fertilizers = sanitizeArray(recommendation.fertilizers);
+            sanitizedRecommendations.careInstructions = sanitizeArray(recommendation.careInstructions);
+            if (recommendation.careDuration) sanitizedRecommendations.careDuration = recommendation.careDuration;
+            if (recommendation.irrigationNeeds) sanitizedRecommendations.irrigationNeeds = recommendation.irrigationNeeds;
+        }
+
+        // Sanitize Risk Warnings
+        let sanitizedRisks = sanitizeArray(recommendation.riskWarnings);
+
+        // Sanitize Confidence
+        let confidence = recommendation.aiMetadata?.confidence || 0;
+        if (confidence > 1) confidence /= 100;
+        // --- End Sanitization ---
+
         const report = await SuitabilityReport.create({
             user: userId || req.user?._id,
             location: {
@@ -152,14 +224,16 @@ export const evaluateSuitability = async (req, res) => {
             },
             suitabilityStatus: recommendation.suitabilityStatus,
             reasoning: recommendation.reasoning,
-            recommendations: recommendation.recommendations,
-            riskWarnings: recommendation.riskWarnings,
-            aiMetadata: recommendation.aiMetadata
+            recommendations: sanitizedRecommendations,
+            riskWarnings: sanitizedRisks,
+            aiMetadata: {
+                ...recommendation.aiMetadata,
+                confidence
+            }
         });
 
         console.log(`✅ Report saved with ID: ${report._id}\n`);
 
-        // Step 5: Return response
         res.status(200).json({
             success: true,
             message: 'Suitability analysis completed',
@@ -167,14 +241,17 @@ export const evaluateSuitability = async (req, res) => {
                 reportId: report._id,
                 suitabilityStatus: recommendation.suitabilityStatus,
                 reasoning: recommendation.reasoning,
-                recommendations: recommendation.recommendations,
-                riskWarnings: recommendation.riskWarnings,
+                recommendations: sanitizedRecommendations,
+                riskWarnings: sanitizedRisks,
                 environmentalContext: {
                     soil: environmentalContext.soil,
                     climate: environmentalContext.climate,
                     risks: environmentalContext.risks
                 },
-                aiMetadata: recommendation.aiMetadata
+                aiMetadata: {
+                    ...recommendation.aiMetadata,
+                    confidence
+                }
             }
         });
     } catch (error) {
@@ -188,10 +265,6 @@ export const evaluateSuitability = async (req, res) => {
     }
 };
 
-/**
- * Get suitability report history for a user
- * @route GET /api/suitability/history
- */
 export const getSuitabilityHistory = async (req, res) => {
     try {
         const { userId, limit = 10, status } = req.query;
@@ -205,7 +278,6 @@ export const getSuitabilityHistory = async (req, res) => {
             });
         }
 
-        // Build filter
         const filter = { user };
         if (status) {
             filter.suitabilityStatus = status;
@@ -214,7 +286,7 @@ export const getSuitabilityHistory = async (req, res) => {
         const reports = await SuitabilityReport.find(filter)
             .sort({ createdAt: -1 })
             .limit(parseInt(limit))
-            .select('-aiMetadata'); // Exclude AI metadata for cleaner response
+            .select('-aiMetadata');
 
         res.status(200).json({
             success: true,
@@ -231,10 +303,6 @@ export const getSuitabilityHistory = async (req, res) => {
     }
 };
 
-/**
- * Get a specific suitability report by ID
- * @route GET /api/suitability/reports/:id
- */
 export const getSuitabilityReport = async (req, res) => {
     try {
         const { id } = req.params;
@@ -263,10 +331,6 @@ export const getSuitabilityReport = async (req, res) => {
     }
 };
 
-/**
- * Get statistics about suitability evaluations
- * @route GET /api/suitability/stats
- */
 export const getSuitabilityStats = async (req, res) => {
     try {
         const totalReports = await SuitabilityReport.countDocuments();

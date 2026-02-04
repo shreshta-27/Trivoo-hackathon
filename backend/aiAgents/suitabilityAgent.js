@@ -17,7 +17,8 @@ You must provide:
 3. Specific fertilizer recommendations
 4. Care duration and instructions
 5. Risk warnings with mitigation strategies
-Output your response as a valid JSON object with this exact structure:
+Output your response as a valid JSON object with this exact structure.
+IMPORTANT: Ensure "fertilizers" and "riskWarnings" are actual JSON Arrays, NOT strings. Do not use single quotes.
 {
   "suitabilityStatus": "suitable" | "suitable_with_caution" | "not_recommended",
   "reasoning": "detailed explanation of your decision",
