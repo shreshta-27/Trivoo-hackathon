@@ -8,7 +8,6 @@ import { getEnvironmentalContext } from '../utils/environmentalDataService.js';
 import { generateProjectInsight } from '../aiAgents/projectInsightAgent.js';
 import { calculateMaintenanceImpact } from '../utils/lifecycleUtils.js';
 import { generateSimulationScenario, simulateHealthTrajectory, identifyProjectedRisks, generateMitigationStrategies } from '../utils/simulationUtils.js';
-import { triggerRecommendationOnProjectCreation, triggerRecommendationOnHealthChange } from '../utils/recommendationTriggers.js';
 
 export const getUserProjects = async (req, res) => {
     try {
@@ -260,7 +259,11 @@ export const createProjectManually = async (req, res) => {
             console.error('AI insight generation failed:', aiError.message);
         }
 
-        triggerRecommendationOnProjectCreation(project._id);
+        import('../utils/recommendationTriggers.js')
+            .then(({ triggerRecommendationOnProjectCreation }) => {
+                triggerRecommendationOnProjectCreation(project._id);
+            })
+            .catch(err => console.error('Recommendation trigger failed:', err.message));
 
         res.status(201).json({
             success: true,
@@ -348,8 +351,12 @@ export const logMaintenanceAction = async (req, res) => {
             console.error('AI feedback generation failed:', aiError.message);
         }
 
-        if (healthIncrease > 0) {
-            triggerRecommendationOnHealthChange(project._id);
+        if (healthBoost > 0) {
+            import('../utils/recommendationTriggers.js')
+                .then(({ triggerRecommendationOnHealthChange }) => {
+                    triggerRecommendationOnHealthChange(project._id);
+                })
+                .catch(err => console.error('Recommendation trigger failed:', err.message));
         }
 
         res.status(201).json({
