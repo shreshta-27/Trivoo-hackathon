@@ -43,6 +43,23 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import plantingSocket from './sockets/plantingSocket.js';
+import { seedTreeData } from './utils/seedTrees.js';
+import plantingRoutes from './Routes/plantingRoutes.js';
+
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+    cors: {
+        origin: '*',
+        credentials: true
+    }
+});
+
+plantingSocket(io);
+seedTreeData();
+
 app.use('/api/users', userRoutes);
 app.use("/api/auth", authRoutes);
 app.use('/api/map', mapRoutes);
@@ -53,6 +70,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/recommendations', actionRecommendationRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/crops', cropRoutes);
+app.use('/api/planting', plantingRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/charts', chartRoutes);
 
@@ -71,6 +89,6 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

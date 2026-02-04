@@ -1,391 +1,50 @@
-import SuitabilityReport from '../Models/SuitabilityReport.js';
-import { getEnvironmentalContext } from '../utils/environmentalDataService.js';
-import { analyzeSuitability } from '../aiAgents/suitabilityAgent.js';
+import TreeSpecies from '../Models/TreeSpecies.js';
+import { getEnvironmentalContext } from '../aiAgents/environmentalAgent.js';
+import { filterSuitableTrees } from '../services/suitabilityLogic.js';
+import { explainSuitability } from '../aiAgents/suitabilityExplainerAgent.js';
+import { geocodeLocation } from '../utils/geocodingService.js'; // Assuming this exists or I use coordinates directly
 
-export const evaluateSuitability = async (req, res) => {
+export const assessSuitability = async (req, res) => {
     try {
-        const {
-            projectName,
-            location,
-            plantationSize,
-            treeType,
-            userId
-        } = req.body;
+        const { lat, lon, plantationSize, preferredSpecies } = req.body;
 
-        // Validate required fields
-        if (!projectName || !location || !plantationSize || !treeType) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required fields: projectName, location, plantationSize, treeType'
-            });
-        }
+        console.log(`🌍 Assessing suitability for [${lat}, ${lon}]...`);
 
-        // Validate location format
-        if (!location.coordinates || location.coordinates.length !== 2) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid location format. Expected: { coordinates: [longitude, latitude] }'
-            });
-        }
+        // 1. Get Environmental Context (AI Estimate)
+        // We can optionally reverse geocode to get a place name for the explainer
+        // Using a comprehensive prompt or just coords.
+        const envData = await getEnvironmentalContext(lat, lon);
+        console.log('Environment:', envData);
 
-        const [longitude, latitude] = location.coordinates;
+        // 2. Fetch All Species
+        const allTrees = await TreeSpecies.find();
 
-        // Validate coordinates
-        if (longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid coordinates. Longitude: -180 to 180, Latitude: -90 to 90'
-            });
-        }
+        // 3. Deterministic Filtering
+        const suitableTrees = filterSuitableTrees(allTrees, envData);
+        console.log(`Found ${suitableTrees.length} suitable species.`);
 
-        // Validate plantation size
-        if (plantationSize < 1) {
-            return res.status(400).json({
-                success: false,
-                message: 'Plantation size must be at least 1'
-            });
-        }
+        // 4. Generate Explanations (AI)
+        const explanations = await explainSuitability(suitableTrees, envData, plantationSize, `Coordinate ${lat},${lon}`);
 
-        console.log(`\n📍 Suitability evaluation requested for: ${projectName}`);
-        console.log(`Location: ${latitude}, ${longitude}`);
-
-        const CACHE_RADIUS_METERS = 500;
-        const CACHE_VALIDITY_DAYS = 30;
-
-        const cachedReport = await SuitabilityReport.findOne({
-            location: {
-                $near: {
-                    $geometry: {
-                        type: "Point",
-                        coordinates: [longitude, latitude]
-                    },
-                    $maxDistance: CACHE_RADIUS_METERS
-                }
-            },
-            'projectDetails.treeType': treeType,
-            'projectDetails.plantationSize': {
-                $gte: plantationSize * 0.8,
-                $lte: plantationSize * 1.2
-            },
-            createdAt: {
-                $gt: new Date(Date.now() - CACHE_VALIDITY_DAYS * 24 * 60 * 60 * 1000)
-            }
-        }).sort({ createdAt: -1 });
-
-        if (cachedReport) {
-            console.log(`⚡ CACHE HIT: Using existing report from ${cachedReport.createdAt.toISOString()}`);
-            console.log(`   Original Project: ${cachedReport.projectDetails.name}`);
-
-            const newReport = await SuitabilityReport.create({
-                user: userId || req.user?._id,
-                location: {
-                    type: 'Point',
-                    coordinates: [longitude, latitude]
-                },
-                projectDetails: {
-                    name: projectName,
-                    plantationSize,
-                    treeType
-                },
-                environmentalContext: cachedReport.environmentalContext,
-                suitabilityStatus: cachedReport.suitabilityStatus,
-                reasoning: cachedReport.reasoning,
-                recommendations: {
-                    ...cachedReport.recommendations,
-                    estimatedLabor: Math.ceil(plantationSize / 100),
-                    estimatedCost: plantationSize * 50
-                },
-                riskWarnings: cachedReport.riskWarnings,
-                aiMetadata: {
-                    ...cachedReport.aiMetadata,
-                    model: cachedReport.aiMetadata?.model + ' (cached)',
-                    processingTime: 0
-                }
-            });
-
-            return res.status(200).json({
-                success: true,
-                message: 'Suitability analysis completed (from cache)',
-                data: {
-                    reportId: newReport._id,
-                    suitabilityStatus: newReport.suitabilityStatus,
-                    reasoning: newReport.reasoning,
-                    recommendations: newReport.recommendations,
-                    riskWarnings: newReport.riskWarnings,
-                    environmentalContext: newReport.environmentalContext,
-                    aiMetadata: newReport.aiMetadata
-                }
-            });
-        }
-
-        console.log('💨 CACHE MISS: Proceeding with fresh analysis...');
-
-        const environmentalContext = await getEnvironmentalContext(longitude, latitude);
-
-        console.log(`✓ Environmental data fetched (${environmentalContext.dataSource})`);
-
-        const projectDetails = {
-            name: projectName,
-            plantationSize,
-            treeType
-        };
-
-        const recommendation = await analyzeSuitability(projectDetails, environmentalContext);
-
-        // --- Data Sanitization Block ---
-        const parseLooseJson = (str) => {
-            if (typeof str !== 'string') return str;
-            const cleanStr = str.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
-            try {
-                return JSON.parse(cleanStr);
-            } catch (e) {
-                try {
-                    return new Function('return ' + cleanStr)();
-                } catch (e2) {
-                    // console.error("Failed to parse loose JSON:", cleanStr);
-                    return [];
-                }
-            }
-        };
-
-        const sanitizeArray = (val) => {
-            if (!val) return [];
-            // If it's a string, parse it
-            if (typeof val === 'string') {
-                const parsed = parseLooseJson(val);
-                return Array.isArray(parsed) ? parsed : [];
-            }
-            // If it's an array, check elements for nested stringification
-            if (Array.isArray(val)) {
-                return val.map(item => {
-                    if (typeof item === 'string') {
-                        const clean = item.trim();
-                        // Heuristic: starts with [ or { implies object/array structure
-                        if (clean.startsWith('{') || clean.startsWith('[')) {
-                            const parsed = parseLooseJson(clean);
-                            return parsed; // Map returns the parsed object/array
-                        }
-                    }
-                    return item; // Return as is if not a JSON-string
-                }).flat(); // Flatten in case we parsed an array within the array
-            }
-            return [];
-        };
-
-        const sanitizedRecommendations = {
-            fertilizers: [],
-            careDuration: recommendation.careDuration || 0,
-            careInstructions: [],
-            irrigationNeeds: recommendation.irrigationNeeds || 'moderate',
-            estimatedLabor: Math.ceil(plantationSize / 100),
-            estimatedCost: plantationSize * 50
-        };
-
-        // Extract from recommendation object (handling nesting)
-        if (recommendation.recommendations) {
-            sanitizedRecommendations.fertilizers = sanitizeArray(recommendation.recommendations.fertilizers);
-            sanitizedRecommendations.careInstructions = sanitizeArray(recommendation.recommendations.careInstructions);
-
-            if (recommendation.recommendations.careDuration) sanitizedRecommendations.careDuration = recommendation.recommendations.careDuration;
-            if (recommendation.recommendations.irrigationNeeds) sanitizedRecommendations.irrigationNeeds = recommendation.recommendations.irrigationNeeds;
-        } else {
-            // Fallback for flat structure
-            sanitizedRecommendations.fertilizers = sanitizeArray(recommendation.fertilizers);
-            sanitizedRecommendations.careInstructions = sanitizeArray(recommendation.careInstructions);
-            if (recommendation.careDuration) sanitizedRecommendations.careDuration = recommendation.careDuration;
-            if (recommendation.irrigationNeeds) sanitizedRecommendations.irrigationNeeds = recommendation.irrigationNeeds;
-        }
-
-        // Sanitize Risk Warnings
-        let sanitizedRisks = sanitizeArray(recommendation.riskWarnings);
-
-        // Sanitize Confidence
-        let confidence = recommendation.aiMetadata?.confidence || 0;
-        if (confidence > 1) confidence /= 100;
-        // --- End Sanitization ---
-
-        const report = await SuitabilityReport.create({
-            user: userId || req.user?._id,
-            location: {
-                type: 'Point',
-                coordinates: [longitude, latitude]
-            },
-            projectDetails: {
-                name: projectName,
-                plantationSize,
-                treeType
-            },
-            environmentalContext: {
-                soilType: environmentalContext.soil.type,
-                pH: environmentalContext.soil.pH,
-                rainfall: environmentalContext.climate.averageRainfall,
-                temperature: environmentalContext.climate.temperatureRange,
-                climateZone: environmentalContext.climate.climateZone
-            },
-            suitabilityStatus: recommendation.suitabilityStatus,
-            reasoning: recommendation.reasoning,
-            recommendations: sanitizedRecommendations,
-            riskWarnings: sanitizedRisks,
-            aiMetadata: {
-                ...recommendation.aiMetadata,
-                confidence
-            }
+        // 5. Merge Data
+        const finalResult = suitableTrees.map(tree => {
+            const explanation = explanations.find(e => e.tree_name === tree.name);
+            return {
+                ...tree,
+                match_reason: explanation ? explanation.match_reason : 'Matches environmental criteria.',
+                risk_warning: explanation ? explanation.risk_warning : null
+            };
         });
 
-        console.log(`✅ Report saved with ID: ${report._id}\n`);
-
-        res.status(200).json({
+        res.json({
             success: true,
-            message: 'Suitability analysis completed',
-            data: {
-                reportId: report._id,
-                suitabilityStatus: recommendation.suitabilityStatus,
-                reasoning: recommendation.reasoning,
-                recommendations: sanitizedRecommendations,
-                riskWarnings: sanitizedRisks,
-                environmentalContext: {
-                    soil: environmentalContext.soil,
-                    climate: environmentalContext.climate,
-                    risks: environmentalContext.risks
-                },
-                aiMetadata: {
-                    ...recommendation.aiMetadata,
-                    confidence
-                }
-            }
+            location: { lat, lon },
+            environmentalProfile: envData,
+            recommendations: finalResult
         });
+
     } catch (error) {
-        console.error('❌ Error in suitability evaluation:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to evaluate suitability',
-            error: error.message,
-            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        });
+        console.error('Suitability Assessment Failed:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
-};
-
-export const getSuitabilityHistory = async (req, res) => {
-    try {
-        const { userId, limit = 10, status } = req.query;
-
-        const user = userId || req.user?._id;
-
-        if (!user) {
-            return res.status(400).json({
-                success: false,
-                message: 'User ID is required'
-            });
-        }
-
-        const filter = { user };
-        if (status) {
-            filter.suitabilityStatus = status;
-        }
-
-        const reports = await SuitabilityReport.find(filter)
-            .sort({ createdAt: -1 })
-            .limit(parseInt(limit))
-            .select('-aiMetadata');
-
-        res.status(200).json({
-            success: true,
-            count: reports.length,
-            data: reports
-        });
-    } catch (error) {
-        console.error('Error fetching suitability history:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch suitability history',
-            error: error.message
-        });
-    }
-};
-
-export const getSuitabilityReport = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        const report = await SuitabilityReport.findById(id)
-            .populate('user', 'name email');
-
-        if (!report) {
-            return res.status(404).json({
-                success: false,
-                message: 'Report not found'
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            data: report
-        });
-    } catch (error) {
-        console.error('Error fetching suitability report:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch suitability report',
-            error: error.message
-        });
-    }
-};
-
-export const getSuitabilityStats = async (req, res) => {
-    try {
-        const totalReports = await SuitabilityReport.countDocuments();
-
-        const statusCounts = await SuitabilityReport.aggregate([
-            {
-                $group: {
-                    _id: '$suitabilityStatus',
-                    count: { $sum: 1 }
-                }
-            }
-        ]);
-
-        const avgConfidence = await SuitabilityReport.aggregate([
-            {
-                $group: {
-                    _id: null,
-                    avgConfidence: { $avg: '$aiMetadata.confidence' },
-                    avgProcessingTime: { $avg: '$aiMetadata.processingTime' }
-                }
-            }
-        ]);
-
-        const recentReports = await SuitabilityReport.find()
-            .sort({ createdAt: -1 })
-            .limit(5)
-            .select('projectDetails.name suitabilityStatus createdAt')
-            .populate('user', 'name');
-
-        res.status(200).json({
-            success: true,
-            data: {
-                totalReports,
-                statusBreakdown: statusCounts.reduce((acc, item) => {
-                    acc[item._id] = item.count;
-                    return acc;
-                }, {}),
-                averageConfidence: avgConfidence[0]?.avgConfidence || 0,
-                averageProcessingTime: avgConfidence[0]?.avgProcessingTime || 0,
-                recentReports
-            }
-        });
-    } catch (error) {
-        console.error('Error fetching suitability stats:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch suitability statistics',
-            error: error.message
-        });
-    }
-};
-
-export default {
-    evaluateSuitability,
-    getSuitabilityHistory,
-    getSuitabilityReport,
-    getSuitabilityStats
 };
