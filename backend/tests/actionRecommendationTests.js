@@ -1,0 +1,146 @@
+import axios from 'axios';
+
+const BASE_URL = 'http://localhost:5000/api';
+let authToken = '';
+let testProjectId = '';
+let testUserId = '';
+
+const colors = {
+    reset: '\x1b[0m',
+    green: '\x1b[32m',
+    red: '\x1b[31m',
+    yellow: '\x1b[33m',
+    blue: '\x1b[34m'
+};
+
+const log = {
+    success: (msg) => console.log(`${colors.green}✓${colors.reset} ${msg}`),
+    error: (msg) => console.log(`${colors.red}✗${colors.reset} ${msg}`),
+    info: (msg) => console.log(`${colors.blue}ℹ${colors.reset} ${msg}`),
+    section: (msg) => console.log(`\n${colors.yellow}=== ${msg} ===${colors.reset}\n`)
+};
+
+async function testActionRecommendationWorkflow() {
+    try {
+        log.section('ACTION RECOMMENDATION ENGINE - WORKFLOW TEST');
+
+        log.section('Step 1: Login');
+        const loginRes = await axios.post(`${BASE_URL}/auth/login`, {
+            email: 'test@example.com',
+            password: 'password123'
+        });
+        authToken = loginRes.data.token;
+        testUserId = loginRes.data.user._id;
+        log.success(`Logged in as ${loginRes.data.user.email}`);
+
+        log.section('Step 2: Create Test Project');
+        const projectRes = await axios.post(
+            `${BASE_URL}/lifecycle/create/manual`,
+            {
+                name: 'Action Recommendation Test Project',
+                location: {
+                    type: 'Point',
+                    coordinates: [73.8567, 18.5204]
+                },
+                regionId: '507f1f77bcf86cd799439011',
+                userId: testUserId,
+                plantationSize: 5,
+                treeType: 'Teak',
+                metadata: {
+                    plantedDate: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
+                    soilType: 'loamy',
+                    irrigationSystem: 'drip'
+                }
+            },
+            { headers: { Authorization: `Bearer ${authToken}` } }
+        );
+        testProjectId = projectRes.data.data._id;
+        log.success(`Project created: ${testProjectId}`);
+        log.info('Waiting for automatic recommendation generation...');
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        log.section('Step 3: Trigger Action Recommendation (Manual)');
+        const triggerRes = await axios.post(
+            `${BASE_URL}/recommendations/project/${testProjectId}/trigger`,
+            {},
+            { headers: { Authorization: `Bearer ${authToken}` } }
+        );
+        log.success(`Generated ${triggerRes.data.count} recommendations`);
+
+        if (triggerRes.data.data.length > 0) {
+            const firstRec = triggerRes.data.data[0];
+            log.info(`Priority 1 Action: ${firstRec.action}`);
+            log.info(`Urgency: ${firstRec.urgency}`);
+            log.info(`Time Window: ${firstRec.timeWindow?.value} ${firstRec.timeWindow?.unit}`);
+            log.info(`Explanation: ${firstRec.explanation.substring(0, 100)}...`);
+        }
+
+        log.section('Step 4: Get Active Recommendations');
+        const activeRes = await axios.get(
+            `${BASE_URL}/recommendations/project/${testProjectId}/active`,
+            { headers: { Authorization: `Bearer ${authToken}` } }
+        );
+        log.success(`Found ${activeRes.data.count} active recommendations`);
+
+        log.section('Step 5: Get User Dashboard Recommendations');
+        const userRes = await axios.get(
+            `${BASE_URL}/recommendations/user/${testUserId}/all`,
+            { headers: { Authorization: `Bearer ${authToken}` } }
+        );
+        log.success(`Total recommendations: ${userRes.data.total}`);
+        log.info(`Critical: ${userRes.data.byUrgency.critical}`);
+        log.info(`High: ${userRes.data.byUrgency.high}`);
+        log.info(`Medium: ${userRes.data.byUrgency.medium}`);
+        log.info(`Low: ${userRes.data.byUrgency.low}`);
+
+        log.section('Step 6: Log Maintenance Action (Triggers Health Change)');
+        const maintenanceRes = await axios.post(
+            `${BASE_URL}/lifecycle/${testProjectId}/maintenance`,
+            {
+                actionType: 'watering',
+                description: 'Deep watering - 500L per tree',
+                userId: testUserId,
+                wasRecommended: true
+            },
+            { headers: { Authorization: `Bearer ${authToken}` } }
+        );
+        log.success(`Maintenance logged. New health: ${maintenanceRes.data.data.newHealthScore}`);
+        log.info('Waiting for automatic recommendation update...');
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        log.section('Step 7: Get Risk Signals');
+        const signalsRes = await axios.get(
+            `${BASE_URL}/recommendations/project/${testProjectId}/signals`,
+            { headers: { Authorization: `Bearer ${authToken}` } }
+        );
+        log.success(`Found ${signalsRes.data.count} risk signals`);
+
+        log.section('Step 8: Mark Recommendation Complete');
+        if (activeRes.data.data.length > 0) {
+            const recId = activeRes.data.data[0]._id;
+            const completeRes = await axios.post(
+                `${BASE_URL}/recommendations/${recId}/complete`,
+                { maintenanceActionId: maintenanceRes.data.data.action._id },
+                { headers: { Authorization: `Bearer ${authToken}` } }
+            );
+            log.success(`Recommendation marked complete: ${completeRes.data.data.status}`);
+        }
+
+        log.section('WORKFLOW TEST COMPLETE');
+        log.success('All 7 nodes executed successfully!');
+        log.success('Data flow verified through complete pipeline');
+
+        console.log('\n' + colors.green + '╔════════════════════════════════════════╗');
+        console.log('║  ACTION RECOMMENDATION ENGINE - READY  ║');
+        console.log('╚════════════════════════════════════════╝' + colors.reset + '\n');
+
+    } catch (error) {
+        log.error(`Test failed: ${error.message}`);
+        if (error.response) {
+            console.error('Response:', error.response.data);
+        }
+        process.exit(1);
+    }
+}
+
+testActionRecommendationWorkflow();

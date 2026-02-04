@@ -8,6 +8,7 @@ import { getEnvironmentalContext } from '../utils/environmentalDataService.js';
 import { generateProjectInsight } from '../aiAgents/projectInsightAgent.js';
 import { calculateMaintenanceImpact } from '../utils/lifecycleUtils.js';
 import { generateSimulationScenario, simulateHealthTrajectory, identifyProjectedRisks, generateMitigationStrategies } from '../utils/simulationUtils.js';
+import { triggerRecommendationOnProjectCreation, triggerRecommendationOnHealthChange } from '../utils/recommendationTriggers.js';
 
 export const getUserProjects = async (req, res) => {
     try {
@@ -259,6 +260,8 @@ export const createProjectManually = async (req, res) => {
             console.error('AI insight generation failed:', aiError.message);
         }
 
+        triggerRecommendationOnProjectCreation(project._id);
+
         res.status(201).json({
             success: true,
             message: 'Project created successfully',
@@ -343,6 +346,10 @@ export const logMaintenanceAction = async (req, res) => {
             await action.save();
         } catch (aiError) {
             console.error('AI feedback generation failed:', aiError.message);
+        }
+
+        if (healthIncrease > 0) {
+            triggerRecommendationOnHealthChange(project._id);
         }
 
         res.status(201).json({

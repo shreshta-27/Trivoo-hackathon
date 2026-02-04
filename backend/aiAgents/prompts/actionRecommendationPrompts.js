@@ -1,0 +1,129 @@
+export const ACTION_RECOMMENDATION_SYSTEM_PROMPT = `You are an expert reforestation advisor providing time-critical, actionable intervention recommendations.
+
+Your role:
+1. Interpret combined environmental risks
+2. Plan specific corrective actions
+3. Rank actions by urgency and impact
+4. Generate clear explanations for non-technical users
+
+Always output valid JSON matching the required structure.`;
+
+export const RISK_INTERPRETATION_PROMPT = `Analyze these risk signals for a reforestation project:
+
+PROJECT: {projectName}
+TREE TYPE: {treeType}
+AGE: {projectAge}
+CURRENT HEALTH: {healthScore}
+
+RISK SIGNALS:
+{riskSignals}
+
+ENVIRONMENTAL CONTEXT:
+- Temperature: {temperature}°C (trend: {tempTrend})
+- Rainfall: {rainfall}mm (trend: {rainfallTrend})
+- Soil moisture: {soilMoisture}
+
+Answer these questions:
+1. Are these risks compounding or independent?
+2. Is this normal seasonal stress or dangerous?
+3. Is immediate intervention required?
+
+Output JSON:
+{
+  "overallRisk": "low" | "medium" | "high" | "critical",
+  "compoundingRisks": boolean,
+  "reasoning": "detailed explanation",
+  "interventionRequired": boolean
+}`;
+
+export const ACTION_PLANNING_PROMPT = `Based on this risk analysis, plan corrective actions:
+
+RISK ANALYSIS:
+{riskAnalysis}
+
+PROJECT CONTEXT:
+- Tree type: {treeType}
+- Age: {projectAge}
+- Health score: {healthScore}
+- Active risks: {activeRisks}
+
+CONSTRAINTS:
+- Actions must be specific and measurable
+- Include realistic time windows
+- Consider resource availability
+- Prioritize survival over growth
+
+Generate 1-3 actions that reduce risk fastest.
+
+Output JSON:
+{
+  "actions": [
+    {
+      "action": "specific action description",
+      "timeWindow": {"value": number, "unit": "hours|days|weeks"},
+      "riskAddressed": ["risk1", "risk2"],
+      "type": "preventive" | "corrective"
+    }
+  ]
+}`;
+
+export const PRIORITY_RANKING_PROMPT = `Rank these actions by priority:
+
+ACTIONS:
+{actions}
+
+PROJECT STATE:
+- Health score: {healthScore}
+- Risk level: {riskLevel}
+- Days since last maintenance: {daysSinceMaintenance}
+
+RANKING CRITERIA:
+1. Urgency (how fast will damage occur?)
+2. Impact (how much will this help?)
+3. Effort (how easy to implement?)
+
+Output JSON:
+{
+  "rankedActions": [
+    {
+      "action": "action description",
+      "priority": number (1-10, 10=highest),
+      "urgency": "low" | "medium" | "high" | "critical",
+      "impact": "low" | "medium" | "high" | "critical",
+      "effort": "low" | "medium" | "high",
+      "reasoning": "why this priority"
+    }
+  ]
+}`;
+
+export const EXPLANATION_PROMPT = `Generate a clear, user-friendly explanation for this recommendation:
+
+ACTION: {action}
+PRIORITY: {priority}
+TIME WINDOW: {timeWindow}
+
+CONTEXT:
+- Current situation: {situation}
+- Risk addressed: {riskAddressed}
+- Impact if ignored: {impact}
+
+Create an explanation that:
+1. States what's happening (2-3 sentences)
+2. Explains why action is needed (1-2 sentences)
+3. Describes consequences of inaction (1 sentence)
+
+Use simple language. No jargon. Be direct.
+
+Output JSON:
+{
+  "explanation": "user-friendly explanation",
+  "consequences": "what happens if ignored"
+}`;
+
+export default {
+    ACTION_RECOMMENDATION_SYSTEM_PROMPT,
+    RISK_INTERPRETATION_PROMPT,
+    ACTION_PLANNING_PROMPT,
+    PRIORITY_RANKING_PROMPT,
+    EXPLANATION_PROMPT
+};
