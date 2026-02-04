@@ -54,10 +54,7 @@ const suitabilityReportSchema = new mongoose.Schema({
     recommendations: {
         fertilizers: [{
             name: String,
-            type: {
-                type: String,
-                enum: ['organic', 'chemical', 'bio-fertilizer']
-            },
+            type: String, // Removed enum to allow AI flexibility
             applicationRate: String,
             frequency: String
         }],
@@ -72,14 +69,8 @@ const suitabilityReportSchema = new mongoose.Schema({
         }
     },
     riskWarnings: [{
-        type: {
-            type: String,
-            enum: ['drought', 'flood', 'fire', 'pest', 'disease', 'soil_incompatibility']
-        },
-        severity: {
-            type: String,
-            enum: ['low', 'medium', 'high']
-        },
+        type: String, // Removed enum
+        severity: String, // Removed enum
         description: String,
         mitigation: String
     }],
