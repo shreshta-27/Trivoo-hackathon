@@ -12,6 +12,8 @@ import mapRoutes from './Routes/mapRoutes.js';
 import projectRoutes from './Routes/projectRoutes.js';
 import suitabilityRoutes from './Routes/suitabilityRoutes.js';
 import lifecycleRoutes from './Routes/lifecycleRoutes.js';
+import analyticsRoutes from './Routes/analyticsRoutes.js';
+import actionRecommendationRoutes from './Routes/actionRecommendationRoutes.js';
 
 dotenv.config();
 
@@ -43,6 +45,8 @@ app.use('/api/map', mapRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/suitability', suitabilityRoutes);
 app.use('/api/lifecycle', lifecycleRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/recommendations', actionRecommendationRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Trivo API is running' });
