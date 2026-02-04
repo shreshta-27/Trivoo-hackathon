@@ -1,18 +1,31 @@
 import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
+dotenv.config();
+
+// Create transporter with explicit configuration
+const createTransporter = () => {
+    return nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+        },
+        tls: {
+            rejectUnauthorized: false
+        }
+    });
+};
 
 export const sendWelcomeEmail = async (userEmail, userName) => {
+    const transporter = createTransporter();
+
     const mailOptions = {
-        from: `"Trivo Team" <${process.env.EMAIL_USER}>`,
+        from: `"Trivoo Team" <${process.env.EMAIL_USER}>`,
         to: userEmail,
-        subject: '🌱 Welcome to Trivo - Your Forest Guardian Journey Begins!',
+        subject: '🎉 Welcome to Trivoo - Your Account is Ready!',
         html: `
             <!DOCTYPE html>
             <html>
@@ -25,114 +38,114 @@ export const sendWelcomeEmail = async (userEmail, userName) => {
                         max-width: 600px;
                         margin: 0 auto;
                         padding: 20px;
+                        background-color: #f4f4f4;
+                    }
+                    .container {
+                        background: white;
+                        border-radius: 10px;
+                        overflow: hidden;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
                     }
                     .header {
-                        background: linear-gradient(135deg, #2d5016 0%, #4a7c2c 100%);
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                         color: white;
-                        padding: 30px;
+                        padding: 40px 30px;
                         text-align: center;
-                        border-radius: 10px 10px 0 0;
                     }
                     .header h1 {
                         margin: 0;
-                        font-size: 28px;
+                        font-size: 32px;
                     }
                     .content {
-                        background: #f9f9f9;
-                        padding: 30px;
-                        border-radius: 0 0 10px 10px;
+                        padding: 40px 30px;
                     }
-                    .welcome-box {
-                        background: white;
-                        padding: 20px;
-                        border-left: 4px solid #4a7c2c;
+                    .greeting {
+                        font-size: 18px;
+                        margin-bottom: 20px;
+                    }
+                    .message {
                         margin: 20px 0;
-                        border-radius: 5px;
+                        font-size: 16px;
                     }
-                    .feature {
-                        background: white;
-                        padding: 15px;
-                        margin: 10px 0;
-                        border-radius: 5px;
-                        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                    .features {
+                        background: #f8f9fa;
+                        padding: 20px;
+                        border-radius: 8px;
+                        margin: 25px 0;
                     }
-                    .feature h3 {
-                        color: #4a7c2c;
+                    .features h3 {
+                        color: #667eea;
                         margin-top: 0;
                     }
-                    .cta-button {
-                        display: inline-block;
-                        background: #4a7c2c;
-                        color: white;
-                        padding: 12px 30px;
-                        text-decoration: none;
-                        border-radius: 5px;
-                        margin: 20px 0;
-                        font-weight: bold;
+                    .features ul {
+                        list-style: none;
+                        padding: 0;
+                    }
+                    .features li {
+                        padding: 8px 0;
+                        padding-left: 25px;
+                        position: relative;
+                    }
+                    .features li:before {
+                        content: "🚀";
+                        position: absolute;
+                        left: 0;
                     }
                     .footer {
                         text-align: center;
-                        margin-top: 30px;
-                        padding-top: 20px;
-                        border-top: 1px solid #ddd;
+                        padding: 20px 30px;
+                        background: #f8f9fa;
                         color: #666;
                         font-size: 14px;
                     }
-                    .icon {
-                        font-size: 24px;
-                        margin-right: 10px;
+                    .signature {
+                        margin-top: 30px;
+                        font-weight: bold;
+                        color: #667eea;
                     }
                 </style>
             </head>
             <body>
-                <div class="header">
-                    <h1>🌱 Welcome to Trivo!</h1>
-                    <p>Adaptive Forest Risk & Decision Platform</p>
-                </div>
-                
-                <div class="content">
-                    <div class="welcome-box">
-                        <h2>Hello ${userName}! 👋</h2>
-                        <p>We're thrilled to have you join the Trivo community! You've just taken the first step towards smarter, data-driven reforestation management.</p>
+                <div class="container">
+                    <div class="header">
+                        <h1>🎉 Welcome to Trivoo!</h1>
                     </div>
-
-                    <h2>What You Can Do With Trivo:</h2>
-
-                    <div class="feature">
-                        <h3><span class="icon">🗺️</span>Strategic Planning</h3>
-                        <p>Use AI-backed ecological matching to plan projects before planting. Get species recommendations based on soil, climate, and location data.</p>
+                    
+                    <div class="content">
+                        <p class="greeting">Hi <strong>${userName}</strong>,</p>
+                        
+                        <p class="message">
+                            Welcome to <strong>Trivoo</strong>! 🎉<br>
+                            We're excited to have you on board.
+                        </p>
+                        
+                        <p class="message">
+                            Your account has been successfully created, and you can now start exploring everything Trivoo has to offer — from smart learning experiences to personalized insights designed just for you.
+                        </p>
+                        
+                        <div class="features">
+                            <h3>🚀 What you can do next:</h3>
+                            <ul>
+                                <li>Explore your dashboard</li>
+                                <li>Start your first learning session</li>
+                                <li>Track your progress with AI-powered insights</li>
+                            </ul>
+                        </div>
+                        
+                        <p class="message">
+                            If you have any questions or need help, feel free to reply to this email — we're always here for you.
+                        </p>
+                        
+                        <p class="message">
+                            Happy learning!
+                        </p>
+                        
+                        <p class="signature">Team Trivoo 💙</p>
                     </div>
-
-                    <div class="feature">
-                        <h3><span class="icon">📊</span>Continuous Monitoring</h3>
-                        <p>Track forest health over time using environmental signals and detect risks early with our intelligent alert system.</p>
+                    
+                    <div class="footer">
+                        <p>If you didn't create this account, please ignore this email.</p>
                     </div>
-
-                    <div class="feature">
-                        <h3><span class="icon">⚠️</span>Risk Detection</h3>
-                        <p>Get early warnings for drought, heat stress, fire risk, and human activity incidents affecting your projects.</p>
-                    </div>
-
-                    <div class="feature">
-                        <h3><span class="icon">🎯</span>Smart Prioritization</h3>
-                        <p>Optimize resource allocation with AI-driven recommendations on where to act for maximum impact.</p>
-                    </div>
-
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="http://localhost:3000" class="cta-button">Get Started →</a>
-                    </div>
-
-                    <div class="welcome-box">
-                        <h3>Need Help?</h3>
-                        <p>Our team is here to support you. If you have any questions or need assistance, don't hesitate to reach out.</p>
-                        <p><strong>Email:</strong> ${process.env.EMAIL_USER}</p>
-                    </div>
-                </div>
-
-                <div class="footer">
-                    <p>This email was sent to ${userEmail} because you created a Trivo account.</p>
-                    <p>© 2026 Trivo. All rights reserved.</p>
-                    <p style="color: #4a7c2c; font-weight: bold;">🌳 Together, we grow stronger forests 🌳</p>
                 </div>
             </body>
             </html>
@@ -140,13 +153,166 @@ export const sendWelcomeEmail = async (userEmail, userName) => {
     };
 
     try {
-        await transporter.sendMail(mailOptions);
-        console.log(`✅ Welcome email sent to ${userEmail}`);
-        return { success: true };
+        console.log('🔵 Attempting to send email...');
+        const info = await transporter.sendMail(mailOptions);
+        console.log('🔵✅ WELCOME EMAIL SENT SUCCESSFULLY!');
+        console.log('🔵 Message ID:', info.messageId);
+        console.log('🔵 Response:', info.response);
+        return { success: true, messageId: info.messageId };
     } catch (error) {
-        console.error('❌ Email sending failed:', error.message);
-        return { success: false, error: error.message };
+        console.error('🔵❌ WELCOME EMAIL FAILED!');
+        console.error('🔵 Error:', error.message);
+        console.error('🔵 Full error:', error);
+        throw error;
     }
 };
 
-export default { sendWelcomeEmail };
+export const sendLoginEmail = async (userEmail, userName) => {
+    const transporter = createTransporter();
+
+    const mailOptions = {
+        from: `"Trivoo Team" <${process.env.EMAIL_USER}>`,
+        to: userEmail,
+        subject: '👋 Welcome Back to Trivoo!',
+        html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body {
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        line-height: 1.6;
+                        color: #333;
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 20px;
+                        background-color: #f4f4f4;
+                    }
+                    .container {
+                        background: white;
+                        border-radius: 10px;
+                        overflow: hidden;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                    }
+                    .header {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        padding: 40px 30px;
+                        text-align: center;
+                    }
+                    .header h1 {
+                        margin: 0;
+                        font-size: 32px;
+                    }
+                    .content {
+                        padding: 40px 30px;
+                    }
+                    .greeting {
+                        font-size: 18px;
+                        margin-bottom: 20px;
+                    }
+                    .message {
+                        margin: 20px 0;
+                        font-size: 16px;
+                    }
+                    .features {
+                        background: #f8f9fa;
+                        padding: 20px;
+                        border-radius: 8px;
+                        margin: 25px 0;
+                    }
+                    .features h3 {
+                        color: #667eea;
+                        margin-top: 0;
+                    }
+                    .features ul {
+                        list-style: none;
+                        padding: 0;
+                    }
+                    .features li {
+                        padding: 8px 0;
+                        padding-left: 25px;
+                        position: relative;
+                    }
+                    .features li:before {
+                        content: "🚀";
+                        position: absolute;
+                        left: 0;
+                    }
+                    .footer {
+                        text-align: center;
+                        padding: 20px 30px;
+                        background: #f8f9fa;
+                        color: #666;
+                        font-size: 14px;
+                    }
+                    .signature {
+                        margin-top: 30px;
+                        font-weight: bold;
+                        color: #667eea;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>👋 Welcome Back to Trivoo!</h1>
+                    </div>
+                    
+                    <div class="content">
+                        <p class="greeting">Hi <strong>${userName}</strong>,</p>
+                        
+                        <p class="message">
+                            Welcome back to <strong>Trivoo</strong>! 🎉<br>
+                            We're excited to see you again.
+                        </p>
+                        
+                        <p class="message">
+                            You've successfully logged in, and you can continue exploring everything Trivoo has to offer — from smart learning experiences to personalized insights designed just for you.
+                        </p>
+                        
+                        <div class="features">
+                            <h3>🚀 What you can do next:</h3>
+                            <ul>
+                                <li>Explore your dashboard</li>
+                                <li>Continue your learning session</li>
+                                <li>Track your progress with AI-powered insights</li>
+                            </ul>
+                        </div>
+                        
+                        <p class="message">
+                            If you have any questions or need help, feel free to reply to this email — we're always here for you.
+                        </p>
+                        
+                        <p class="message">
+                            Happy learning!
+                        </p>
+                        
+                        <p class="signature">Team Trivoo 💙</p>
+                    </div>
+                    
+                    <div class="footer">
+                        <p>If you didn't log in to this account, please contact us immediately.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `
+    };
+
+    try {
+        console.log('🟢 Attempting to send email...');
+        const info = await transporter.sendMail(mailOptions);
+        console.log('🟢✅ LOGIN EMAIL SENT SUCCESSFULLY!');
+        console.log('🟢 Message ID:', info.messageId);
+        console.log('🟢 Response:', info.response);
+        return { success: true, messageId: info.messageId };
+    } catch (error) {
+        console.error('🟢❌ LOGIN EMAIL FAILED!');
+        console.error('🟢 Error:', error.message);
+        console.error('🟢 Full error:', error);
+        throw error;
+    }
+};
+
+export default { sendWelcomeEmail, sendLoginEmail };

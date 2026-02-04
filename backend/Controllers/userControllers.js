@@ -1,7 +1,7 @@
 import User from '../Models/userSchema.js';
 import jwt from 'jsonwebtoken';
 import { v2 as cloudinary } from 'cloudinary';
-import { sendWelcomeEmail } from '../utils/emailService.js';
+import { sendWelcomeEmail, sendLoginEmail } from '../utils/emailService.js';
 
 // Configure Cloudinary
 cloudinary.config({
@@ -66,6 +66,12 @@ export const loginUser = async (req, res) => {
         const user = await User.findOne({ email });
 
         if (user && (await user.matchPassword(password))) {
+            try {
+                await sendLoginEmail(user.email, user.name);
+            } catch (emailError) {
+                console.error(`Failed to send login email:`, emailError.message);
+            }
+
             res.json({
                 _id: user._id,
                 name: user.name,
