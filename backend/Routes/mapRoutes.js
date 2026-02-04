@@ -1,15 +1,1 @@
-
-
-import express from 'express';
-import { getMapData, getRegionDetails } from '../Controllers/mapController.js';
-import { generalRateLimiter } from '../Middlewares/rateLimitAI.js';
-
-const router = express.Router();
-
-router.use(generalRateLimiter);
-
-router.get('/data', getMapData);
-
-router.get('/regions/:id', getRegionDetails);
-
-export default router;
+import express from 'express';import { getMapData, getRegionDetails } from '../Controllers/mapController.js';import { generalRateLimiter } from '../Middlewares/rateLimitAI.js';const router = express.Router();router.use(generalRateLimiter);router.get('/data', getMapData);router.get('/regions/:id', getRegionDetails);export default router;

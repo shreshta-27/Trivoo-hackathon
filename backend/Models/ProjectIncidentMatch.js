@@ -1,31 +1,3 @@
-import mongoose from 'mongoose';
-
-const projectIncidentMatchSchema = new mongoose.Schema({
-    incident: { type: mongoose.Schema.Types.ObjectId, ref: 'Incident', required: true },
-    project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true },
-    proximityKm: { type: Number, required: true },
-    impactLevel: {
-        type: String,
-        required: true,
-        enum: ['none', 'low', 'medium', 'high', 'critical']
-    },
-    insight: {
-        message: { type: String, required: true }, // Human-readable insight
-        actionableAdvice: { type: String }, // Specific steps to take
-        riskIncreased: { type: Boolean, default: false }
-    },
-    status: {
-        type: String,
-        enum: ['new', 'acknowledged', 'acted_upon', 'dismissed'],
-        default: 'new'
-    },
-    userNotified: { type: Boolean, default: false },
-    notifiedAt: { type: Date },
-    aiReasoning: { type: String }
-}, { timestamps: true });
-
-projectIncidentMatchSchema.index({ incident: 1, project: 1 }, { unique: true });
-
-const ProjectIncidentMatch = mongoose.model('ProjectIncidentMatch', projectIncidentMatchSchema);
-
-export default ProjectIncidentMatch;
+import mongoose from 'mongoose';const projectIncidentMatchSchema = new mongoose.Schema({    incident: { type: mongoose.Schema.Types.ObjectId, ref: 'Incident', required: true },    project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true },    proximityKm: { type: Number, required: true },    impactLevel: {        type: String,        required: true,        enum: ['none', 'low', 'medium', 'high', 'critical']    },    insight: {        message: { type: String, required: true }, 
+        actionableAdvice: { type: String }, 
+        riskIncreased: { type: Boolean, default: false }    },    status: {        type: String,        enum: ['new', 'acknowledged', 'acted_upon', 'dismissed'],        default: 'new'    },    userNotified: { type: Boolean, default: false },    notifiedAt: { type: Date },    aiReasoning: { type: String }}, { timestamps: true });projectIncidentMatchSchema.index({ incident: 1, project: 1 }, { unique: true });const ProjectIncidentMatch = mongoose.model('ProjectIncidentMatch', projectIncidentMatchSchema);export default ProjectIncidentMatch;

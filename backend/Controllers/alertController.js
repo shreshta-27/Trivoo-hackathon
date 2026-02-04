@@ -1,63 +1,3 @@
-import AlertLog from '../Models/AlertLog.js';
-import User from '../Models/userSchema.js'; // Assuming User model path
-import { sendAlertEmail } from '../utils/emailService.js';
-import { generateAlertContent } from '../aiAgents/alertGeneratorAgent.js';
-
-export const triggerAlert = async (triggerData) => {
-    try {
-        const { userId, projectId, riskType, severity } = triggerData;
-
-        if (!['high', 'critical'].includes(severity)) {
-            console.log(`ℹ️ Alert skipped: Severity '${severity}' is below threshold.`);
-            return { success: false, reason: 'low_severity' };
-        }
-
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        const existingAlert = await AlertLog.findOne({
-            project: projectId,
-            riskType: riskType,
-            sentAt: { $gte: twentyFourHoursAgo }
-        });
-
-        if (existingAlert) {
-            console.log(`ℹ️ Alert skipped: Already sent notification for ${riskType} in last 24h.`);
-            return { success: false, reason: 'already_sent' };
-        }
-
-        const user = await User.findById(userId);
-        if (!user || !user.email) {
-            console.error(`❌ Alert failed: User ${userId} not found or no email.`);
-            return { success: false, reason: 'user_not_found' };
-        }
-
-        const aiContent = await generateAlertContent({
-            ...triggerData,
-            urgencyLevel: severity === 'critical' ? 'Immediate' : 'High'
-        });
-
-        const emailResult = await sendAlertEmail(user.email, aiContent.subject, aiContent.htmlBody);
-
-        await AlertLog.create({
-            project: projectId,
-            user: userId,
-            riskType: riskType,
-            severity: severity,
-            emailContent: {
-                subject: aiContent.subject,
-                body: aiContent.htmlBody
-            },
-            status: emailResult.success ? 'sent' : 'failed',
-            metadata: {
-                aiReasoning: triggerData.issueDescription // Simplified metadata
-            }
-        });
-
-        return { success: true, messageId: emailResult.messageId };
-
-    } catch (error) {
-        console.error('SERVER ERROR triggering alert:', error);
-        return { success: false, error: error.message };
-    }
-};
-
-export default { triggerAlert };
+import AlertLog from '../Models/AlertLog.js';import User from '../Models/userSchema.js'; 
+import { sendAlertEmail } from '../utils/emailService.js';import { generateAlertContent } from '../aiAgents/alertGeneratorAgent.js';export const triggerAlert = async (triggerData) => {    try {        const { userId, projectId, riskType, severity } = triggerData;        if (!['high', 'critical'].includes(severity)) {            console.log(`ℹ️ Alert skipped: Severity '${severity}' is below threshold.`);            return { success: false, reason: 'low_severity' };        }        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);        const existingAlert = await AlertLog.findOne({            project: projectId,            riskType: riskType,            sentAt: { $gte: twentyFourHoursAgo }        });        if (existingAlert) {            console.log(`ℹ️ Alert skipped: Already sent notification for ${riskType} in last 24h.`);            return { success: false, reason: 'already_sent' };        }        const user = await User.findById(userId);        if (!user || !user.email) {            console.error(`❌ Alert failed: User ${userId} not found or no email.`);            return { success: false, reason: 'user_not_found' };        }        const aiContent = await generateAlertContent({            ...triggerData,            urgencyLevel: severity === 'critical' ? 'Immediate' : 'High'        });        const emailResult = await sendAlertEmail(user.email, aiContent.subject, aiContent.htmlBody);        await AlertLog.create({            project: projectId,            user: userId,            riskType: riskType,            severity: severity,            emailContent: {                subject: aiContent.subject,                body: aiContent.htmlBody            },            status: emailResult.success ? 'sent' : 'failed',            metadata: {                aiReasoning: triggerData.issueDescription 
+            }        });        return { success: true, messageId: emailResult.messageId };    } catch (error) {        console.error('SERVER ERROR triggering alert:', error);        return { success: false, error: error.message };    }};export default { triggerAlert };

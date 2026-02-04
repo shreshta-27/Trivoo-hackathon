@@ -1,31 +1,1 @@
-
-
-import express from 'express';
-import {
-    getAllProjects,
-    getProjectById,
-    createProject,
-    updateProjectHealth,
-    deleteProject,
-    getCriticalProjects
-} from '../Controllers/projectController.js';
-import { validateLocation } from '../Middlewares/validateLocation.js';
-import { generalRateLimiter } from '../Middlewares/rateLimitAI.js';
-
-const router = express.Router();
-
-router.use(generalRateLimiter);
-
-router.get('/critical', getCriticalProjects);
-
-router.get('/', getAllProjects);
-
-router.get('/:id', getProjectById);
-
-router.post('/', validateLocation, createProject);
-
-router.patch('/:id/health', updateProjectHealth);
-
-router.delete('/:id', deleteProject);
-
-export default router;
+import express from 'express';import {    getAllProjects,    getProjectById,    createProject,    updateProjectHealth,    deleteProject,    getCriticalProjects} from '../Controllers/projectController.js';import { validateLocation } from '../Middlewares/validateLocation.js';import { generalRateLimiter } from '../Middlewares/rateLimitAI.js';const router = express.Router();router.use(generalRateLimiter);router.get('/critical', getCriticalProjects);router.get('/', getAllProjects);router.get('/:id', getProjectById);router.post('/', validateLocation, createProject);router.patch('/:id/health', updateProjectHealth);router.delete('/:id', deleteProject);export default router;

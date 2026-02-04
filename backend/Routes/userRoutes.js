@@ -1,27 +1,1 @@
-import express from 'express';
-import {
-    registerUser,
-    loginUser,
-    logoutUser,
-    getUserProfile,
-    updateUserProfile,
-    updateProfileImage,
-    removeProfileImage,
-    getAllUsers,
-    deleteUser
-} from '../Controllers/userControllers.js';
-import { protect, authorize } from '../Middlewares/authMiddleware.js';
-
-const router = express.Router();
-
-router.post('/register', registerUser);
-router.post('/login', loginUser);
-router.post('/logout', protect, logoutUser);
-router.get('/profile', protect, getUserProfile);
-router.put('/profile', protect, updateUserProfile);
-router.put('/profile/image', protect, updateProfileImage);
-router.delete('/profile/image', protect, removeProfileImage);
-router.get('/', protect, getAllUsers);
-router.delete('/:id', protect, deleteUser);
-
-export default router;
+import express from 'express';import {    registerUser,    loginUser,    logoutUser,    getUserProfile,    updateUserProfile,    updateProfileImage,    removeProfileImage,    getAllUsers,    deleteUser} from '../Controllers/userControllers.js';import { protect, authorize } from '../Middlewares/authMiddleware.js';const router = express.Router();router.post('/register', registerUser);router.post('/login', loginUser);router.post('/logout', protect, logoutUser);router.get('/profile', protect, getUserProfile);router.put('/profile', protect, updateUserProfile);router.put('/profile/image', protect, updateProfileImage);router.delete('/profile/image', protect, removeProfileImage);router.get('/', protect, getAllUsers);router.delete('/:id', protect, deleteUser);export default router;

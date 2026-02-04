@@ -1,420 +1,1 @@
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/router';
-import { motion } from 'framer-motion';
-import DashboardLayout from '../components/DashboardLayout';
-import {
-    AlertTriangle,
-    Flame,
-    TreePine,
-    Cloud,
-    Droplets,
-    CloudRain,
-    MapPin,
-    Clock,
-    ChevronRight,
-} from 'lucide-react';
-
-export default function Incidents() {
-    const router = useRouter();
-    const [incidents, setIncidents] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const canvasRef = useRef(null);
-
-    useEffect(() => {
-        setTimeout(() => {
-            setIncidents([
-                {
-                    id: 1,
-                    headline: 'Wildfire Alert: Amazon Region Under Threat',
-                    riskType: 'wildfire',
-                    location: 'Amazon Rainforest, Brazil',
-                    severity: 'critical',
-                    timestamp: '2 hours ago',
-                    projectId: 1,
-                    description: 'Satellite imagery shows rapidly spreading wildfire threatening reforestation areas. Immediate evacuation and fire suppression measures required.',
-                },
-                {
-                    id: 2,
-                    headline: 'Illegal Deforestation Activity Detected',
-                    riskType: 'deforestation',
-                    location: 'Congo Basin, DRC',
-                    severity: 'high',
-                    timestamp: '5 hours ago',
-                    projectId: 4,
-                    description: 'Unauthorized logging operations detected in protected conservation zone. Local authorities have been notified.',
-                },
-                {
-                    id: 3,
-                    headline: 'Industrial Pollution Levels Rising',
-                    riskType: 'pollution',
-                    location: 'Great Barrier Reef, Australia',
-                    severity: 'high',
-                    timestamp: '8 hours ago',
-                    projectId: 2,
-                    description: 'Water quality monitoring shows increased pollutant levels from nearby industrial facilities affecting coral restoration efforts.',
-                },
-                {
-                    id: 4,
-                    headline: 'Drought Conditions Worsening',
-                    riskType: 'drought',
-                    location: 'Amazon Rainforest, Peru',
-                    severity: 'medium',
-                    timestamp: '12 hours ago',
-                    projectId: 1,
-                    description: 'Extended dry period causing soil moisture levels to drop below optimal range for newly planted seedlings.',
-                },
-                {
-                    id: 5,
-                    headline: 'Heavy Rainfall Warning Issued',
-                    riskType: 'flood',
-                    location: 'Congo Basin, Congo',
-                    severity: 'medium',
-                    timestamp: '1 day ago',
-                    projectId: 4,
-                    description: 'Meteorological services predict heavy rainfall over the next 48 hours. Flood prevention measures being implemented.',
-                },
-                {
-                    id: 6,
-                    headline: 'Air Quality Index Deteriorating',
-                    riskType: 'pollution',
-                    location: 'Arctic Circle, Norway',
-                    severity: 'low',
-                    timestamp: '2 days ago',
-                    projectId: 3,
-                    description: 'Seasonal air quality decline observed due to increased shipping activity in Arctic waters.',
-                },
-                {
-                    id: 7,
-                    headline: 'Community Reports Illegal Hunting',
-                    riskType: 'deforestation',
-                    location: 'Amazon Rainforest, Ecuador',
-                    severity: 'low',
-                    timestamp: '3 days ago',
-                    projectId: 1,
-                    description: 'Local communities report increased poaching activity in biodiversity conservation areas.',
-                },
-                {
-                    id: 8,
-                    headline: 'Heatwave Affecting Coral Bleaching',
-                    riskType: 'wildfire',
-                    location: 'Great Barrier Reef, Australia',
-                    severity: 'critical',
-                    timestamp: '4 hours ago',
-                    projectId: 2,
-                    description: 'Record-breaking ocean temperatures causing widespread coral bleaching events across restoration sites.',
-                },
-            ]);
-            setLoading(false);
-        }, 800);
-    }, []);
-
-    useEffect(() => {
-        if (!canvasRef.current) return;
-
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        const particles = [];
-        const colors = ['rgba(239, 68, 68, 0.4)', 'rgba(249, 115, 22, 0.4)', 'rgba(251, 146, 60, 0.4)'];
-
-        for (let i = 0; i < 30; i++) {
-            particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                vx: (Math.random() - 0.5) * 0.5,
-                vy: (Math.random() - 0.5) * 0.5,
-                radius: Math.random() * 2 + 1,
-                color: colors[Math.floor(Math.random() * colors.length)],
-            });
-        }
-
-        let animationId;
-        const animate = () => {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            particles.forEach((p) => {
-                p.x += p.vx;
-                p.y += p.vy;
-
-                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fillStyle = p.color;
-                ctx.fill();
-            });
-
-            animationId = requestAnimationFrame(animate);
-        };
-        animate();
-
-        const handleResize = () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        };
-        window.addEventListener('resize', handleResize);
-
-        return () => {
-            cancelAnimationFrame(animationId);
-            window.removeEventListener('resize', handleResize);
-        };
-    }, []);
-
-    const getRiskTypeConfig = (riskType) => {
-        const configs = {
-            wildfire: { icon: Flame, color: '#ef4444', label: 'Wildfire', bgGradient: 'linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1))' },
-            deforestation: { icon: TreePine, color: '#f97316', label: 'Deforestation', bgGradient: 'linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(234, 88, 12, 0.1))' },
-            pollution: { icon: Cloud, color: '#8b5cf6', label: 'Pollution', bgGradient: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(124, 58, 237, 0.1))' },
-            drought: { icon: Droplets, color: '#f59e0b', label: 'Drought', bgGradient: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1))' },
-            flood: { icon: CloudRain, color: '#3b82f6', label: 'Flood', bgGradient: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.1))' },
-        };
-        return configs[riskType] || configs.pollution;
-    };
-
-    const getSeverityConfig = (severity) => {
-        const configs = {
-            low: { color: '#3b82f6', label: 'Low', bg: 'rgba(59, 130, 246, 0.15)' },
-            medium: { color: '#f59e0b', label: 'Medium', bg: 'rgba(245, 158, 11, 0.15)' },
-            high: { color: '#f97316', label: 'High', bg: 'rgba(249, 115, 22, 0.15)' },
-            critical: { color: '#ef4444', label: 'Critical', bg: 'rgba(239, 68, 68, 0.15)' },
-        };
-        return configs[severity] || configs.medium;
-    };
-
-    const handleIncidentClick = (projectId) => {
-        router.push(`/project-detail?id=${projectId}`);
-    };
-
-    return (
-        <DashboardLayout activePage="incidents">
-            {}
-            <canvas
-                ref={canvasRef}
-                style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    pointerEvents: 'none',
-                    zIndex: 0,
-                    opacity: 0.3,
-                }}
-            />
-
-            <div style={{ maxWidth: '1400px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-                {}
-                <motion.div
-                    style={{ marginBottom: '2.5rem' }}
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                        <motion.div
-                            style={{
-                                width: '56px',
-                                height: '56px',
-                                borderRadius: '14px',
-                                background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                            whileHover={{ scale: 1.1, rotate: 5 }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-                        >
-                            <AlertTriangle style={{ width: '28px', height: '28px', color: '#fff' }} />
-                        </motion.div>
-                        <h1
-                            style={{
-                                fontSize: '2.5rem',
-                                fontWeight: '700',
-                                background: 'linear-gradient(135deg, var(--text-primary), #ef4444)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                backgroundClip: 'text',
-                            }}
-                        >
-                            Incidents & News
-                        </h1>
-                    </div>
-                    <p style={{ fontSize: '1.125rem', color: 'var(--text-secondary)', marginLeft: '72px' }}>
-                        Stay informed about environmental events and human activities
-                    </p>
-                </motion.div>
-
-                {}
-                {loading ? (
-                    <motion.div
-                        style={{ textAlign: 'center', padding: '4rem' }}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                    >
-                        <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-                            style={{
-                                width: '48px',
-                                height: '48px',
-                                border: '4px solid rgba(239, 68, 68, 0.2)',
-                                borderTopColor: '#ef4444',
-                                borderRadius: '50%',
-                                margin: '0 auto 1rem',
-                            }}
-                        />
-                        <p style={{ color: 'var(--text-secondary)' }}>Loading incidents...</p>
-                    </motion.div>
-                ) : (
-                    
-                    <div
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
-                            gap: '1.5rem',
-                        }}
-                    >
-                        {incidents.map((incident, index) => {
-                            const riskConfig = getRiskTypeConfig(incident.riskType);
-                            const severityConfig = getSeverityConfig(incident.severity);
-                            const RiskIcon = riskConfig.icon;
-
-                            return (
-                                <motion.div
-                                    key={incident.id}
-                                    className="glass-card"
-                                    style={{
-                                        padding: '1.5rem',
-                                        cursor: 'pointer',
-                                        position: 'relative',
-                                        overflow: 'hidden',
-                                        background: riskConfig.bgGradient,
-                                        borderLeft: `4px solid ${severityConfig.color}`,
-                                    }}
-                                    initial={{ opacity: 0, y: 20, rotateX: -10 }}
-                                    animate={{ opacity: 1, y: 0, rotateX: 0 }}
-                                    transition={{ delay: index * 0.08, duration: 0.5 }}
-                                    whileHover={{
-                                        scale: 1.02,
-                                        y: -6,
-                                        rotateY: 2,
-                                        boxShadow: `0 20px 60px ${severityConfig.color}40`,
-                                        borderLeftWidth: '6px',
-                                    }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => handleIncidentClick(incident.projectId)}
-                                >
-                                    {}
-                                    {incident.severity === 'critical' && (
-                                        <motion.div
-                                            style={{
-                                                position: 'absolute',
-                                                top: 0,
-                                                left: 0,
-                                                right: 0,
-                                                bottom: 0,
-                                                background: `radial-gradient(circle at top left, ${severityConfig.color}20, transparent)`,
-                                                pointerEvents: 'none',
-                                            }}
-                                            animate={{ opacity: [0.3, 0.6, 0.3] }}
-                                            transition={{ duration: 2, repeat: Infinity }}
-                                        />
-                                    )}
-
-                                    {}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                        <div
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.5rem',
-                                                padding: '0.5rem 0.75rem',
-                                                borderRadius: '8px',
-                                                background: `${riskConfig.color}20`,
-                                                border: `1px solid ${riskConfig.color}40`,
-                                            }}
-                                        >
-                                            <RiskIcon style={{ width: '16px', height: '16px', color: riskConfig.color }} />
-                                            <span style={{ fontSize: '0.75rem', fontWeight: '600', color: riskConfig.color, textTransform: 'uppercase' }}>
-                                                {riskConfig.label}
-                                            </span>
-                                        </div>
-                                        <div
-                                            style={{
-                                                padding: '0.375rem 0.75rem',
-                                                borderRadius: '8px',
-                                                background: severityConfig.bg,
-                                                border: `1px solid ${severityConfig.color}40`,
-                                            }}
-                                        >
-                                            <span style={{ fontSize: '0.75rem', fontWeight: '600', color: severityConfig.color, textTransform: 'uppercase' }}>
-                                                {severityConfig.label}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {}
-                                    <h3
-                                        style={{
-                                            fontSize: '1.125rem',
-                                            fontWeight: '600',
-                                            color: 'var(--text-primary)',
-                                            marginBottom: '0.75rem',
-                                            lineHeight: '1.4',
-                                        }}
-                                    >
-                                        {incident.headline}
-                                    </h3>
-
-                                    {}
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                                        <MapPin style={{ width: '14px', height: '14px', color: 'var(--emerald-green)' }} />
-                                        <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{incident.location}</span>
-                                    </div>
-
-                                    {}
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                                        <Clock style={{ width: '14px', height: '14px', color: 'var(--text-muted)' }} />
-                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{incident.timestamp}</span>
-                                    </div>
-
-                                    {}
-                                    <p
-                                        style={{
-                                            fontSize: '0.875rem',
-                                            color: 'var(--text-secondary)',
-                                            lineHeight: '1.5',
-                                            marginBottom: '1rem',
-                                        }}
-                                    >
-                                        {incident.description.substring(0, 100)}...
-                                    </p>
-
-                                    {}
-                                    <motion.div
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.25rem',
-                                            fontSize: '0.875rem',
-                                            color: riskConfig.color,
-                                            fontWeight: '600',
-                                        }}
-                                        whileHover={{ x: 4 }}
-                                    >
-                                        View Project Details
-                                        <ChevronRight style={{ width: '16px', height: '16px' }} />
-                                    </motion.div>
-                                </motion.div>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
-        </DashboardLayout>
-    );
-}
+import { useState, useEffect, useRef } from 'react';import { useRouter } from 'next/router';import { motion } from 'framer-motion';import DashboardLayout from '../components/DashboardLayout';import {    AlertTriangle,    Flame,    TreePine,    Cloud,    Droplets,    CloudRain,    MapPin,    Clock,    ChevronRight,} from 'lucide-react';export default function Incidents() {    const router = useRouter();    const [incidents, setIncidents] = useState([]);    const [loading, setLoading] = useState(true);    const canvasRef = useRef(null);    useEffect(() => {        setTimeout(() => {            setIncidents([                {                    id: 1,                    headline: 'Wildfire Alert: Amazon Region Under Threat',                    riskType: 'wildfire',                    location: 'Amazon Rainforest, Brazil',                    severity: 'critical',                    timestamp: '2 hours ago',                    projectId: 1,                    description: 'Satellite imagery shows rapidly spreading wildfire threatening reforestation areas. Immediate evacuation and fire suppression measures required.',                },                {                    id: 2,                    headline: 'Illegal Deforestation Activity Detected',                    riskType: 'deforestation',                    location: 'Congo Basin, DRC',                    severity: 'high',                    timestamp: '5 hours ago',                    projectId: 4,                    description: 'Unauthorized logging operations detected in protected conservation zone. Local authorities have been notified.',                },                {                    id: 3,                    headline: 'Industrial Pollution Levels Rising',                    riskType: 'pollution',                    location: 'Great Barrier Reef, Australia',                    severity: 'high',                    timestamp: '8 hours ago',                    projectId: 2,                    description: 'Water quality monitoring shows increased pollutant levels from nearby industrial facilities affecting coral restoration efforts.',                },                {                    id: 4,                    headline: 'Drought Conditions Worsening',                    riskType: 'drought',                    location: 'Amazon Rainforest, Peru',                    severity: 'medium',                    timestamp: '12 hours ago',                    projectId: 1,                    description: 'Extended dry period causing soil moisture levels to drop below optimal range for newly planted seedlings.',                },                {                    id: 5,                    headline: 'Heavy Rainfall Warning Issued',                    riskType: 'flood',                    location: 'Congo Basin, Congo',                    severity: 'medium',                    timestamp: '1 day ago',                    projectId: 4,                    description: 'Meteorological services predict heavy rainfall over the next 48 hours. Flood prevention measures being implemented.',                },                {                    id: 6,                    headline: 'Air Quality Index Deteriorating',                    riskType: 'pollution',                    location: 'Arctic Circle, Norway',                    severity: 'low',                    timestamp: '2 days ago',                    projectId: 3,                    description: 'Seasonal air quality decline observed due to increased shipping activity in Arctic waters.',                },                {                    id: 7,                    headline: 'Community Reports Illegal Hunting',                    riskType: 'deforestation',                    location: 'Amazon Rainforest, Ecuador',                    severity: 'low',                    timestamp: '3 days ago',                    projectId: 1,                    description: 'Local communities report increased poaching activity in biodiversity conservation areas.',                },                {                    id: 8,                    headline: 'Heatwave Affecting Coral Bleaching',                    riskType: 'wildfire',                    location: 'Great Barrier Reef, Australia',                    severity: 'critical',                    timestamp: '4 hours ago',                    projectId: 2,                    description: 'Record-breaking ocean temperatures causing widespread coral bleaching events across restoration sites.',                },            ]);            setLoading(false);        }, 800);    }, []);    useEffect(() => {        if (!canvasRef.current) return;        const canvas = canvasRef.current;        const ctx = canvas.getContext('2d');        canvas.width = window.innerWidth;        canvas.height = window.innerHeight;        const particles = [];        const colors = ['rgba(239, 68, 68, 0.4)', 'rgba(249, 115, 22, 0.4)', 'rgba(251, 146, 60, 0.4)'];        for (let i = 0; i < 30; i++) {            particles.push({                x: Math.random() * canvas.width,                y: Math.random() * canvas.height,                vx: (Math.random() - 0.5) * 0.5,                vy: (Math.random() - 0.5) * 0.5,                radius: Math.random() * 2 + 1,                color: colors[Math.floor(Math.random() * colors.length)],            });        }        let animationId;        const animate = () => {            ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';            ctx.fillRect(0, 0, canvas.width, canvas.height);            particles.forEach((p) => {                p.x += p.vx;                p.y += p.vy;                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;                ctx.beginPath();                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);                ctx.fillStyle = p.color;                ctx.fill();            });            animationId = requestAnimationFrame(animate);        };        animate();        const handleResize = () => {            canvas.width = window.innerWidth;            canvas.height = window.innerHeight;        };        window.addEventListener('resize', handleResize);        return () => {            cancelAnimationFrame(animationId);            window.removeEventListener('resize', handleResize);        };    }, []);    const getRiskTypeConfig = (riskType) => {        const configs = {            wildfire: { icon: Flame, color: '#ef4444', label: 'Wildfire', bgGradient: 'linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1))' },            deforestation: { icon: TreePine, color: '#f97316', label: 'Deforestation', bgGradient: 'linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(234, 88, 12, 0.1))' },            pollution: { icon: Cloud, color: '#8b5cf6', label: 'Pollution', bgGradient: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(124, 58, 237, 0.1))' },            drought: { icon: Droplets, color: '#f59e0b', label: 'Drought', bgGradient: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1))' },            flood: { icon: CloudRain, color: '#3b82f6', label: 'Flood', bgGradient: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.1))' },        };        return configs[riskType] || configs.pollution;    };    const getSeverityConfig = (severity) => {        const configs = {            low: { color: '#3b82f6', label: 'Low', bg: 'rgba(59, 130, 246, 0.15)' },            medium: { color: '#f59e0b', label: 'Medium', bg: 'rgba(245, 158, 11, 0.15)' },            high: { color: '#f97316', label: 'High', bg: 'rgba(249, 115, 22, 0.15)' },            critical: { color: '#ef4444', label: 'Critical', bg: 'rgba(239, 68, 68, 0.15)' },        };        return configs[severity] || configs.medium;    };    const handleIncidentClick = (projectId) => {        router.push(`/project-detail?id=${projectId}`);    };    return (        <DashboardLayout activePage="incidents">            {}            <canvas                ref={canvasRef}                style={{                    position: 'fixed',                    top: 0,                    left: 0,                    width: '100%',                    height: '100%',                    pointerEvents: 'none',                    zIndex: 0,                    opacity: 0.3,                }}            />            <div style={{ maxWidth: '1400px', margin: '0 auto', position: 'relative', zIndex: 1 }}>                {}                <motion.div                    style={{ marginBottom: '2.5rem' }}                    initial={{ opacity: 0, y: -20 }}                    animate={{ opacity: 1, y: 0 }}                    transition={{ duration: 0.5 }}                >                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>                        <motion.div                            style={{                                width: '56px',                                height: '56px',                                borderRadius: '14px',                                background: 'linear-gradient(135deg, #ef4444, #dc2626)',                                display: 'flex',                                alignItems: 'center',                                justifyContent: 'center',                            }}                            whileHover={{ scale: 1.1, rotate: 5 }}                            transition={{ type: 'spring', stiffness: 400, damping: 10 }}                        >                            <AlertTriangle style={{ width: '28px', height: '28px', color: '#fff' }} />                        </motion.div>                        <h1                            style={{                                fontSize: '2.5rem',                                fontWeight: '700',                                background: 'linear-gradient(135deg, var(--text-primary), #ef4444)',                                WebkitBackgroundClip: 'text',                                WebkitTextFillColor: 'transparent',                                backgroundClip: 'text',                            }}                        >                            Incidents & News                        </h1>                    </div>                    <p style={{ fontSize: '1.125rem', color: 'var(--text-secondary)', marginLeft: '72px' }}>                        Stay informed about environmental events and human activities                    </p>                </motion.div>                {}                {loading ? (                    <motion.div                        style={{ textAlign: 'center', padding: '4rem' }}                        initial={{ opacity: 0 }}                        animate={{ opacity: 1 }}                    >                        <motion.div                            animate={{ rotate: 360 }}                            transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}                            style={{                                width: '48px',                                height: '48px',                                border: '4px solid rgba(239, 68, 68, 0.2)',                                borderTopColor: '#ef4444',                                borderRadius: '50%',                                margin: '0 auto 1rem',                            }}                        />                        <p style={{ color: 'var(--text-secondary)' }}>Loading incidents...</p>                    </motion.div>                ) : (                    <div                        style={{                            display: 'grid',                            gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',                            gap: '1.5rem',                        }}                    >                        {incidents.map((incident, index) => {                            const riskConfig = getRiskTypeConfig(incident.riskType);                            const severityConfig = getSeverityConfig(incident.severity);                            const RiskIcon = riskConfig.icon;                            return (                                <motion.div                                    key={incident.id}                                    className="glass-card"                                    style={{                                        padding: '1.5rem',                                        cursor: 'pointer',                                        position: 'relative',                                        overflow: 'hidden',                                        background: riskConfig.bgGradient,                                        borderLeft: `4px solid ${severityConfig.color}`,                                    }}                                    initial={{ opacity: 0, y: 20, rotateX: -10 }}                                    animate={{ opacity: 1, y: 0, rotateX: 0 }}                                    transition={{ delay: index * 0.08, duration: 0.5 }}                                    whileHover={{                                        scale: 1.02,                                        y: -6,                                        rotateY: 2,                                        boxShadow: `0 20px 60px ${severityConfig.color}40`,                                        borderLeftWidth: '6px',                                    }}                                    whileTap={{ scale: 0.98 }}                                    onClick={() => handleIncidentClick(incident.projectId)}                                >                                    {}                                    {incident.severity === 'critical' && (                                        <motion.div                                            style={{                                                position: 'absolute',                                                top: 0,                                                left: 0,                                                right: 0,                                                bottom: 0,                                                background: `radial-gradient(circle at top left, ${severityConfig.color}20, transparent)`,                                                pointerEvents: 'none',                                            }}                                            animate={{ opacity: [0.3, 0.6, 0.3] }}                                            transition={{ duration: 2, repeat: Infinity }}                                        />                                    )}                                    {}                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>                                        <div                                            style={{                                                display: 'flex',                                                alignItems: 'center',                                                gap: '0.5rem',                                                padding: '0.5rem 0.75rem',                                                borderRadius: '8px',                                                background: `${riskConfig.color}20`,                                                border: `1px solid ${riskConfig.color}40`,                                            }}                                        >                                            <RiskIcon style={{ width: '16px', height: '16px', color: riskConfig.color }} />                                            <span style={{ fontSize: '0.75rem', fontWeight: '600', color: riskConfig.color, textTransform: 'uppercase' }}>                                                {riskConfig.label}                                            </span>                                        </div>                                        <div                                            style={{                                                padding: '0.375rem 0.75rem',                                                borderRadius: '8px',                                                background: severityConfig.bg,                                                border: `1px solid ${severityConfig.color}40`,                                            }}                                        >                                            <span style={{ fontSize: '0.75rem', fontWeight: '600', color: severityConfig.color, textTransform: 'uppercase' }}>                                                {severityConfig.label}                                            </span>                                        </div>                                    </div>                                    {}                                    <h3                                        style={{                                            fontSize: '1.125rem',                                            fontWeight: '600',                                            color: 'var(--text-primary)',                                            marginBottom: '0.75rem',                                            lineHeight: '1.4',                                        }}                                    >                                        {incident.headline}                                    </h3>                                    {}                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>                                        <MapPin style={{ width: '14px', height: '14px', color: 'var(--emerald-green)' }} />                                        <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{incident.location}</span>                                    </div>                                    {}                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>                                        <Clock style={{ width: '14px', height: '14px', color: 'var(--text-muted)' }} />                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{incident.timestamp}</span>                                    </div>                                    {}                                    <p                                        style={{                                            fontSize: '0.875rem',                                            color: 'var(--text-secondary)',                                            lineHeight: '1.5',                                            marginBottom: '1rem',                                        }}                                    >                                        {incident.description.substring(0, 100)}...                                    </p>                                    {}                                    <motion.div                                        style={{                                            display: 'flex',                                            alignItems: 'center',                                            gap: '0.25rem',                                            fontSize: '0.875rem',                                            color: riskConfig.color,                                            fontWeight: '600',                                        }}                                        whileHover={{ x: 4 }}                                    >                                        View Project Details                                        <ChevronRight style={{ width: '16px', height: '16px' }} />                                    </motion.div>                                </motion.div>                            );                        })}                    </div>                )}            </div>        </DashboardLayout>    );}

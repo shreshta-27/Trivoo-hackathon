@@ -1,81 +1,1 @@
-import mongoose from 'mongoose';
-
-const actionRecommendationSchema = new mongoose.Schema({
-    project: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Project',
-        required: true
-    },
-    action: {
-        type: String,
-        required: true
-    },
-    timeWindow: {
-        value: Number,
-        unit: {
-            type: String,
-            enum: ['hours', 'days', 'weeks']
-        }
-    },
-    riskAddressed: [{
-        type: String,
-        enum: ['drought', 'heat', 'fire', 'water_stress', 'pest', 'disease', 'soil_degradation']
-    }],
-    priority: {
-        type: Number,
-        min: 1,
-        max: 10
-    },
-    urgency: {
-        type: String,
-        enum: ['low', 'medium', 'high', 'critical'],
-        required: true
-    },
-    impact: {
-        type: String,
-        enum: ['low', 'medium', 'high', 'critical']
-    },
-    effort: {
-        type: String,
-        enum: ['low', 'medium', 'high']
-    },
-    explanation: {
-        type: String,
-        required: true
-    },
-    reasoning: {
-        type: String,
-        required: true
-    },
-    consequences: {
-        type: String
-    },
-    status: {
-        type: String,
-        enum: ['pending', 'in_progress', 'completed', 'ignored', 'expired'],
-        default: 'pending'
-    },
-    completedAt: Date,
-    expiresAt: Date,
-    aiMetadata: {
-        model: String,
-        processingTime: Number,
-        confidence: Number,
-        workflowVersion: String
-    },
-    riskContext: {
-        overallRisk: String,
-        compoundingRisks: Boolean,
-        riskInterpretation: String
-    }
-}, {
-    timestamps: true
-});
-
-actionRecommendationSchema.index({ project: 1, status: 1 });
-actionRecommendationSchema.index({ priority: -1 });
-actionRecommendationSchema.index({ expiresAt: 1 });
-
-const ActionRecommendation = mongoose.model('ActionRecommendation', actionRecommendationSchema);
-
-export default ActionRecommendation;
+import mongoose from 'mongoose';const actionRecommendationSchema = new mongoose.Schema({    project: {        type: mongoose.Schema.Types.ObjectId,        ref: 'Project',        required: true    },    action: {        type: String,        required: true    },    timeWindow: {        value: Number,        unit: {            type: String,            enum: ['hours', 'days', 'weeks']        }    },    riskAddressed: [{        type: String,        enum: ['drought', 'heat', 'fire', 'water_stress', 'pest', 'disease', 'soil_degradation']    }],    priority: {        type: Number,        min: 1,        max: 10    },    urgency: {        type: String,        enum: ['low', 'medium', 'high', 'critical'],        required: true    },    impact: {        type: String,        enum: ['low', 'medium', 'high', 'critical']    },    effort: {        type: String,        enum: ['low', 'medium', 'high']    },    explanation: {        type: String,        required: true    },    reasoning: {        type: String,        required: true    },    consequences: {        type: String    },    status: {        type: String,        enum: ['pending', 'in_progress', 'completed', 'ignored', 'expired'],        default: 'pending'    },    completedAt: Date,    expiresAt: Date,    aiMetadata: {        model: String,        processingTime: Number,        confidence: Number,        workflowVersion: String    },    riskContext: {        overallRisk: String,        compoundingRisks: Boolean,        riskInterpretation: String    }}, {    timestamps: true});actionRecommendationSchema.index({ project: 1, status: 1 });actionRecommendationSchema.index({ priority: -1 });actionRecommendationSchema.index({ expiresAt: 1 });const ActionRecommendation = mongoose.model('ActionRecommendation', actionRecommendationSchema);export default ActionRecommendation;

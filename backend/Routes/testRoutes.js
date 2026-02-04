@@ -1,133 +1,1 @@
-import express from 'express';
-import { triggerAlert } from '../Controllers/alertController.js';
-import { sendAlertEmail } from '../utils/emailService.js';
-import { generateAlertContent } from '../aiAgents/alertGeneratorAgent.js';
-
-const router = express.Router();
-
-router.post('/alert', async (req, res) => {
-    try {
-        const { email, name } = req.body;
-
-        if (!email || !name) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email and name are required'
-            });
-        }
-
-        console.log(`\n🧪 Testing Alert Email Generation...`);
-        console.log(`📧 Recipient: ${email}`);
-
-        const alertData = {
-            projectName: 'Test Plantation - Critical Health Alert',
-            location: 'Pune, Maharashtra',
-            riskType: 'health_critical',
-            severity: 'critical',
-            urgencyLevel: 'Immediate',
-            issueDescription: 'Critical health decline detected in plantation. Soil moisture levels critically low (15%) and pest infestation spreading rapidly across 40% of plantation area. Tree survival rate dropped to 65%. Immediate intervention required to prevent complete plantation failure.',
-            actionRecommendation: 'URGENT ACTIONS REQUIRED:\n1. Deploy emergency irrigation system within 6 hours\n2. Apply organic pest control measures immediately\n3. Conduct soil moisture testing across all zones\n4. Implement daily monitoring protocol\n5. Prepare contingency replanting plan',
-            treeType: 'Teak',
-            plantationSize: 500,
-            healthScore: 42,
-            currentRisks: ['drought_risk', 'pest_infestation', 'soil_degradation']
-        };
-
-        console.log('🤖 Generating AI alert content...');
-        const aiContent = await generateAlertContent(alertData);
-
-        console.log('✓ AI content generated');
-        console.log(`  Subject: ${aiContent.subject}`);
-
-        console.log('📤 Sending alert email...');
-        const emailResult = await sendAlertEmail(email, aiContent.subject, aiContent.htmlBody);
-
-        if (emailResult.success) {
-            console.log('✅ Alert email sent successfully!');
-            console.log(`📬 Message ID: ${emailResult.messageId}`);
-
-            res.status(200).json({
-                success: true,
-                message: 'Alert email sent successfully',
-                recipient: email,
-                subject: aiContent.subject,
-                messageId: emailResult.messageId,
-                aiGenerated: true
-            });
-        } else {
-            throw new Error('Email sending failed');
-        }
-    } catch (error) {
-        console.error(`❌ Alert email test failed:`, error.message);
-        res.status(500).json({
-            success: false,
-            message: 'Alert email test failed',
-            error: error.message
-        });
-    }
-});
-
-router.post('/recommendation-alert', async (req, res) => {
-    try {
-        const { email, name } = req.body;
-
-        if (!email || !name) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email and name are required'
-            });
-        }
-
-        console.log(`\n🧪 Testing Action Recommendation Alert...`);
-        console.log(`📧 Recipient: ${email}`);
-
-        const recommendationData = {
-            projectName: 'Sustainable Teak Plantation',
-            location: 'Pune District, Maharashtra',
-            riskType: 'action_urgent',
-            severity: 'critical',
-            urgencyLevel: 'Immediate',
-            issueDescription: 'AI analysis detected multiple critical risk factors requiring immediate action. Current health score: 45/100. Active risks: drought stress, nutrient deficiency, and early-stage pest activity.',
-            actionRecommendation: 'PRIORITY ACTIONS:\n1. Increase irrigation frequency to twice daily\n2. Apply NPK fertilizer (10:26:26) at 200g per tree\n3. Deploy pheromone traps for pest monitoring\n4. Mulch around tree bases to retain moisture\n5. Schedule expert inspection within 48 hours',
-            treeType: 'Teak',
-            plantationSize: 1000,
-            healthScore: 45,
-            currentRisks: ['drought_risk', 'nutrient_deficiency', 'pest_activity']
-        };
-
-        console.log('🤖 Generating AI recommendation alert...');
-        const aiContent = await generateAlertContent(recommendationData);
-
-        console.log('✓ AI content generated');
-        console.log(`  Subject: ${aiContent.subject}`);
-
-        console.log('📤 Sending recommendation alert email...');
-        const emailResult = await sendAlertEmail(email, aiContent.subject, aiContent.htmlBody);
-
-        if (emailResult.success) {
-            console.log('✅ Recommendation alert email sent successfully!');
-            console.log(`📬 Message ID: ${emailResult.messageId}`);
-
-            res.status(200).json({
-                success: true,
-                message: 'Recommendation alert email sent successfully',
-                recipient: email,
-                subject: aiContent.subject,
-                messageId: emailResult.messageId,
-                aiGenerated: true,
-                alertType: 'action_recommendation'
-            });
-        } else {
-            throw new Error('Email sending failed');
-        }
-    } catch (error) {
-        console.error(`❌ Recommendation alert test failed:`, error.message);
-        res.status(500).json({
-            success: false,
-            message: 'Recommendation alert test failed',
-            error: error.message
-        });
-    }
-});
-
-export default router;
+import express from 'express';import { triggerAlert } from '../Controllers/alertController.js';import { sendAlertEmail } from '../utils/emailService.js';import { generateAlertContent } from '../aiAgents/alertGeneratorAgent.js';const router = express.Router();router.post('/alert', async (req, res) => {    try {        const { email, name } = req.body;        if (!email || !name) {            return res.status(400).json({                success: false,                message: 'Email and name are required'            });        }        console.log(`\n🧪 Testing Alert Email Generation...`);        console.log(`📧 Recipient: ${email}`);        const alertData = {            projectName: 'Test Plantation - Critical Health Alert',            location: 'Pune, Maharashtra',            riskType: 'health_critical',            severity: 'critical',            urgencyLevel: 'Immediate',            issueDescription: 'Critical health decline detected in plantation. Soil moisture levels critically low (15%) and pest infestation spreading rapidly across 40% of plantation area. Tree survival rate dropped to 65%. Immediate intervention required to prevent complete plantation failure.',            actionRecommendation: 'URGENT ACTIONS REQUIRED:\n1. Deploy emergency irrigation system within 6 hours\n2. Apply organic pest control measures immediately\n3. Conduct soil moisture testing across all zones\n4. Implement daily monitoring protocol\n5. Prepare contingency replanting plan',            treeType: 'Teak',            plantationSize: 500,            healthScore: 42,            currentRisks: ['drought_risk', 'pest_infestation', 'soil_degradation']        };        console.log('🤖 Generating AI alert content...');        const aiContent = await generateAlertContent(alertData);        console.log('✓ AI content generated');        console.log(`  Subject: ${aiContent.subject}`);        console.log('📤 Sending alert email...');        const emailResult = await sendAlertEmail(email, aiContent.subject, aiContent.htmlBody);        if (emailResult.success) {            console.log('✅ Alert email sent successfully!');            console.log(`📬 Message ID: ${emailResult.messageId}`);            res.status(200).json({                success: true,                message: 'Alert email sent successfully',                recipient: email,                subject: aiContent.subject,                messageId: emailResult.messageId,                aiGenerated: true            });        } else {            throw new Error('Email sending failed');        }    } catch (error) {        console.error(`❌ Alert email test failed:`, error.message);        res.status(500).json({            success: false,            message: 'Alert email test failed',            error: error.message        });    }});router.post('/recommendation-alert', async (req, res) => {    try {        const { email, name } = req.body;        if (!email || !name) {            return res.status(400).json({                success: false,                message: 'Email and name are required'            });        }        console.log(`\n🧪 Testing Action Recommendation Alert...`);        console.log(`📧 Recipient: ${email}`);        const recommendationData = {            projectName: 'Sustainable Teak Plantation',            location: 'Pune District, Maharashtra',            riskType: 'action_urgent',            severity: 'critical',            urgencyLevel: 'Immediate',            issueDescription: 'AI analysis detected multiple critical risk factors requiring immediate action. Current health score: 45/100. Active risks: drought stress, nutrient deficiency, and early-stage pest activity.',            actionRecommendation: 'PRIORITY ACTIONS:\n1. Increase irrigation frequency to twice daily\n2. Apply NPK fertilizer (10:26:26) at 200g per tree\n3. Deploy pheromone traps for pest monitoring\n4. Mulch around tree bases to retain moisture\n5. Schedule expert inspection within 48 hours',            treeType: 'Teak',            plantationSize: 1000,            healthScore: 45,            currentRisks: ['drought_risk', 'nutrient_deficiency', 'pest_activity']        };        console.log('🤖 Generating AI recommendation alert...');        const aiContent = await generateAlertContent(recommendationData);        console.log('✓ AI content generated');        console.log(`  Subject: ${aiContent.subject}`);        console.log('📤 Sending recommendation alert email...');        const emailResult = await sendAlertEmail(email, aiContent.subject, aiContent.htmlBody);        if (emailResult.success) {            console.log('✅ Recommendation alert email sent successfully!');            console.log(`📬 Message ID: ${emailResult.messageId}`);            res.status(200).json({                success: true,                message: 'Recommendation alert email sent successfully',                recipient: email,                subject: aiContent.subject,                messageId: emailResult.messageId,                aiGenerated: true,                alertType: 'action_recommendation'            });        } else {            throw new Error('Email sending failed');        }    } catch (error) {        console.error(`❌ Recommendation alert test failed:`, error.message);        res.status(500).json({            success: false,            message: 'Recommendation alert test failed',            error: error.message        });    }});export default router;
