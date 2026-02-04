@@ -1,0 +1,32 @@
+import jwt from 'jsonwebtoken';
+import User from '../Models/user.js';
+
+export const protect = async (req, res, next) => {
+    let token;
+
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        try {
+            token = req.headers.authorization.split(' ')[1];
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            req.user = await User.findById(decoded.id).select('-password');
+            next();
+        } catch (error) {
+            res.status(401).json({ message: 'Not authorized, token failed' });
+        }
+    }
+
+    if (!token) {
+        res.status(401).json({ message: 'Not authorized, no token' });
+    }
+};
+
+export const authorize = (...professions) => {
+    return (req, res, next) => {
+        if (!professions.includes(req.user.profession)) {
+            return res.status(403).json({
+                message: `User profession ${req.user.profession} is not authorized to access this route`
+            });
+        }
+        next();
+    };
+};
