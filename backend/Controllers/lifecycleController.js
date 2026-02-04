@@ -6,6 +6,8 @@ import Simulation from '../Models/Simulation.js';
 import SuitabilityReport from '../Models/SuitabilityReport.js';
 import { getEnvironmentalContext } from '../utils/environmentalDataService.js';
 import { generateProjectInsight } from '../aiAgents/projectInsightAgent.js';
+import { calculateMaintenanceImpact } from '../utils/lifecycleUtils.js';
+import { generateSimulationScenario, simulateHealthTrajectory, identifyProjectedRisks, generateMitigationStrategies } from '../utils/simulationUtils.js';
 
 export const getUserProjects = async (req, res) => {
     try {
@@ -299,13 +301,9 @@ export const logMaintenanceAction = async (req, res) => {
             }
         });
 
-        let healthIncrease = 0;
-        if (actionType === 'watering') healthIncrease = 2;
-        else if (actionType === 'fertilization') healthIncrease = 3;
-        else if (actionType === 'pest_control') healthIncrease = 5;
-        else if (actionType === 'pruning') healthIncrease = 1;
+        const { healthBoost } = calculateMaintenanceImpact(actionType);
 
-        project.healthScore = Math.min(100, project.healthScore + healthIncrease);
+        project.healthScore = Math.min(100, project.healthScore + healthBoost);
         project.lastMaintenanceDate = new Date();
         project.maintenanceActions.push(action._id);
 
@@ -353,7 +351,7 @@ export const logMaintenanceAction = async (req, res) => {
             data: {
                 action,
                 newHealthScore: project.healthScore,
-                healthIncrease
+                healthIncrease: healthBoost
             }
         });
     } catch (error) {
@@ -434,7 +432,7 @@ export const updateProjectInsights = async (req, res) => {
 export const runSimulation = async (req, res) => {
     try {
         const { projectId } = req.params;
-        const { scenarioType, duration, parameters, userId } = req.body;
+        const { scenarioType, duration, userId } = req.body;
 
         const project = await Project.findById(projectId);
         if (!project) {
@@ -444,34 +442,39 @@ export const runSimulation = async (req, res) => {
             });
         }
 
-        const simulationContext = {
-            project,
-            simulation: {
-                scenarioType,
-                duration,
-                parameters
-            }
-        };
+        const scenario = generateSimulationScenario(scenarioType, duration);
+        const healthTrajectory = simulateHealthTrajectory(project.healthScore, scenario, duration);
+        const projectedRisks = identifyProjectedRisks(scenario, project.activeRisks);
+        const mitigationStrategies = generateMitigationStrategies(scenario, projectedRisks);
 
-        const simResult = await generateProjectInsight(simulationContext, 'simulation');
+        const finalHealth = healthTrajectory[healthTrajectory.length - 1].score;
+        const outcome = finalHealth > 75
+            ? 'Project remains healthy under this scenario'
+            : finalHealth > 50
+                ? 'Project experiences moderate stress but survives'
+                : finalHealth > 25
+                    ? 'Project faces significant challenges and may fail without intervention'
+                    : 'Critical condition - project likely to fail under this scenario';
 
         const simulation = await Simulation.create({
             project: projectId,
             user: userId,
             scenarioType,
             duration,
-            parameters,
+            parameters: scenario,
             results: {
-                projectedHealthScore: simResult.projectedHealthScore,
-                healthTrajectory: simResult.healthTrajectory,
-                risksProjected: simResult.risksProjected,
-                recommendations: simResult.recommendations,
-                outcome: simResult.outcome
+                projectedHealthScore: finalHealth,
+                healthTrajectory,
+                risksProjected: projectedRisks,
+                recommendations: mitigationStrategies,
+                outcome
             },
             aiAnalysis: {
-                reasoning: simResult.reasoning,
-                criticalPoints: simResult.criticalPoints,
-                mitigationStrategies: simResult.mitigationStrategies
+                reasoning: `Under ${scenarioType} conditions with ${scenario.description.toLowerCase()}, the project health trajectory shows ${finalHealth > project.healthScore ? 'improvement' : 'decline'}.`,
+                criticalPoints: healthTrajectory
+                    .filter((_, idx) => idx > 0 && Math.abs(healthTrajectory[idx].score - healthTrajectory[idx - 1].score) > 5)
+                    .map(point => `Day ${point.day}: Significant change to ${point.score}% health`),
+                mitigationStrategies
             }
         });
 
