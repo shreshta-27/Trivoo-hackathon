@@ -4,6 +4,12 @@ import MaintenanceAction from '../Models/MaintenanceAction.js';
 import HealthHistory from '../Models/HealthHistory.js';
 import Simulation from '../Models/Simulation.js';
 import { generateHealthSummary } from '../utils/lifecycleUtils.js';
+import {
+    formatHealthChartData,
+    formatRiskChartData,
+    formatMaintenanceChartData,
+    formatProjectStatsChartData
+} from '../utils/chartDataFormatter.js';
 
 export const getProjectStatistics = async (req, res) => {
     try {
@@ -59,9 +65,15 @@ export const getProjectStatistics = async (req, res) => {
             }
         };
 
+        const chartData = {
+            healthChart: formatHealthChartData(project.healthHistory),
+            maintenanceChart: formatMaintenanceChartData(project.maintenanceActions)
+        };
+
         res.status(200).json({
             success: true,
-            data: statistics
+            data: statistics,
+            charts: chartData
         });
     } catch (error) {
         res.status(500).json({
@@ -123,9 +135,17 @@ export const getUserDashboard = async (req, res) => {
             }))
         };
 
+        const chartData = {
+            projectsOverview: formatProjectStatsChartData(projects),
+            healthTrend: formatHealthChartData(
+                projects.flatMap(p => p.healthHistory).sort((a, b) => a.recordedAt - b.recordedAt)
+            )
+        };
+
         res.status(200).json({
             success: true,
-            data: dashboard
+            data: dashboard,
+            charts: chartData
         });
     } catch (error) {
         res.status(500).json({
@@ -235,9 +255,12 @@ export const getMaintenanceAnalytics = async (req, res) => {
                 }))
         };
 
+        const chartData = formatMaintenanceChartData(actions);
+
         res.status(200).json({
             success: true,
-            data: analytics
+            data: analytics,
+            charts: { maintenanceTimeline: chartData }
         });
     } catch (error) {
         res.status(500).json({

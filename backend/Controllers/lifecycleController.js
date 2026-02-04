@@ -8,6 +8,7 @@ import { getEnvironmentalContext } from '../utils/environmentalDataService.js';
 import { generateProjectInsight } from '../aiAgents/projectInsightAgent.js';
 import { calculateMaintenanceImpact } from '../utils/lifecycleUtils.js';
 import { generateSimulationScenario, simulateHealthTrajectory, identifyProjectedRisks, generateMitigationStrategies } from '../utils/simulationUtils.js';
+import { formatHealthChartData, formatMaintenanceChartData } from '../utils/chartDataFormatter.js';
 
 export const getUserProjects = async (req, res) => {
     try {
@@ -102,9 +103,15 @@ export const getProjectLifecycle = async (req, res) => {
             currentEnvironment: currentEnv
         };
 
+        const chartData = {
+            healthTimeline: formatHealthChartData(project.healthHistory),
+            maintenanceHistory: formatMaintenanceChartData(project.maintenanceActions)
+        };
+
         res.status(200).json({
             success: true,
-            data: lifecycle
+            data: lifecycle,
+            charts: chartData
         });
     } catch (error) {
         res.status(500).json({

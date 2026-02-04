@@ -17,6 +17,7 @@ import actionRecommendationRoutes from './Routes/actionRecommendationRoutes.js';
 import newsRoutes from './Routes/newsRoutes.js';
 import cropRoutes from './Routes/cropRoutes.js';
 import testRoutes from './Routes/testRoutes.js';
+import chartRoutes from './Routes/chartRoutes.js';
 
 dotenv.config();
 
@@ -53,6 +54,7 @@ app.use('/api/recommendations', actionRecommendationRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/crops', cropRoutes);
 app.use('/api/test', testRoutes);
+app.use('/api/charts', chartRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Trivo API is running' });
