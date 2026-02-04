@@ -1,12 +1,8 @@
-/**
- * Suitability Agent - LangGraph Workflow
- * Agentic AI system for evaluating plantation project suitability
- */
+
 
 import { StateGraph, END } from "@langchain/langgraph";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-// import { SYSTEM_PROMPT, ANALYSIS_PROMPT_TEMPLATE } from "./prompts/suitabilityPrompts.js";
 import { checkSoilCompatibility } from "../utils/environmentalDataService.js";
 
 const SYSTEM_PROMPT = `You are an expert agricultural and forestry advisor specializing in plantation suitability analysis for reforestation projects in India.
@@ -59,14 +55,12 @@ ANALYSIS REQUIREMENTS:
 7. Provide specific, actionable care instructions
 Provide your analysis as a valid JSON object.`;
 
-// Fallback models in priority order
 const FALLBACK_MODELS = [
     "gemini-2.0-flash",
     "gemini-flash-latest",
     "gemini-pro-latest"
 ];
 
-// Initialize the LLM with fallback support
 const initializeLLM = (modelNameOverride) => {
     const modelName = modelNameOverride || process.env.AI_MODEL || FALLBACK_MODELS[0];
     const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
@@ -80,9 +74,6 @@ const initializeLLM = (modelNameOverride) => {
     });
 };
 
-/**
- * State interface for the workflow
- */
 class SuitabilityState {
     constructor() {
         this.projectDetails = null;
@@ -95,13 +86,8 @@ class SuitabilityState {
     }
 }
 
-/**
- * Node 1: Input Context Node
- * Structures incoming data for the workflow
- */
 const inputContextNode = async (state) => {
     try {
-        // Validate required inputs
         if (!state.projectDetails || !state.environmentalContext) {
             state.errors.push("Missing required project details or environmental context");
             return state;
@@ -115,15 +101,10 @@ const inputContextNode = async (state) => {
     }
 };
 
-/**
- * Node 2: Environmental Analysis Node
- * Evaluates soil compatibility and prepares environmental assessment
- */
 const environmentalAnalysisNode = async (state) => {
     try {
         const { projectDetails, environmentalContext } = state;
 
-        // Check soil compatibility
         state.soilCompatibility = checkSoilCompatibility(
             environmentalContext.soil,
             projectDetails.treeType
@@ -139,20 +120,14 @@ const environmentalAnalysisNode = async (state) => {
     }
 };
 
-/**
- * Node 3: Suitability Reasoner Node (LLM)
- * Uses LLM to perform multi-factor reasoning
- */
 const suitabilityReasonerNode = async (state) => {
     const { projectDetails, environmentalContext } = state;
     const { soil, climate, risks } = environmentalContext;
 
-    // Format risk factors for prompt
     const riskFactorsText = risks.map(r =>
         `- ${r.type}: ${r.probability} probability during ${r.season}`
     ).join('\n');
 
-    // Build the analysis prompt
     const analysisPrompt = ANALYSIS_PROMPT_TEMPLATE
         .replace('{projectName}', projectDetails.name)
         .replace('{latitude}', environmentalContext.location.latitude)
@@ -172,18 +147,15 @@ const suitabilityReasonerNode = async (state) => {
 
     state.analysisPrompt = analysisPrompt;
 
-    // Try models in sequence until one works
     let lastError = null;
     let success = false;
     let llmOutput = null;
     let processingTime = 0;
 
-    // Environment model first, then fallbacks
     const modelsToTry = process.env.AI_MODEL
         ? [process.env.AI_MODEL, ...FALLBACK_MODELS]
         : FALLBACK_MODELS;
 
-    // Remove duplicates
     const uniqueModels = [...new Set(modelsToTry)];
 
     console.log(`Starting LLM analysis with ${uniqueModels.length} candidate models...`);
@@ -202,9 +174,7 @@ const suitabilityReasonerNode = async (state) => {
             const response = await llm.invoke(messages);
             processingTime = Date.now() - startTime;
 
-            // Parse LLM response
             try {
-                // Extract JSON from response (handle markdown code blocks)
                 let content = response.content;
                 if (content.includes('```json')) {
                     content = content.split('```json')[1].split('```')[0].trim();
@@ -247,10 +217,6 @@ const suitabilityReasonerNode = async (state) => {
     return state;
 };
 
-/**
- * Node 4: Care Plan Generator Node
- * Enhances LLM recommendations with additional care planning
- */
 const carePlanGeneratorNode = async (state) => {
     try {
         const { llmResponse, projectDetails } = state;
@@ -260,17 +226,14 @@ const carePlanGeneratorNode = async (state) => {
             return state;
         }
 
-        // Add plantation size-based adjustments
         let careDuration = llmResponse.careDuration;
 
-        // Larger plantations need longer care periods
         if (projectDetails.plantationSize > 2000) {
             careDuration = Math.ceil(careDuration * 1.2);
         } else if (projectDetails.plantationSize > 5000) {
             careDuration = Math.ceil(careDuration * 1.5);
         }
 
-        // Add size-specific care instructions
         const sizeBasedInstructions = [];
         if (projectDetails.plantationSize > 1000) {
             sizeBasedInstructions.push("Hire dedicated maintenance team for large-scale operations");
@@ -302,10 +265,6 @@ const carePlanGeneratorNode = async (state) => {
     }
 };
 
-/**
- * Node 5: Final Recommendation Node
- * Formats the final output for API response
- */
 const finalRecommendationNode = async (state) => {
     try {
         const { llmResponse, enhancedCarePlan, soilCompatibility } = state;
@@ -315,7 +274,6 @@ const finalRecommendationNode = async (state) => {
             return state;
         }
 
-        // Add soil compatibility warning if needed
         const riskWarnings = [...llmResponse.riskWarnings];
         if (!soilCompatibility.compatible) {
             riskWarnings.push({
@@ -354,9 +312,6 @@ const finalRecommendationNode = async (state) => {
     }
 };
 
-/**
- * Build the LangGraph workflow
- */
 const buildSuitabilityWorkflow = () => {
     const workflow = new StateGraph({
         channels: {
@@ -371,14 +326,12 @@ const buildSuitabilityWorkflow = () => {
         }
     });
 
-    // Add nodes
     workflow.addNode("inputContext", inputContextNode);
     workflow.addNode("environmentalAnalysis", environmentalAnalysisNode);
     workflow.addNode("suitabilityReasoner", suitabilityReasonerNode);
     workflow.addNode("carePlanGenerator", carePlanGeneratorNode);
     workflow.addNode("recommendationGenerator", finalRecommendationNode);
 
-    // Define edges (workflow flow)
     workflow.addEdge("__start__", "inputContext");
     workflow.addEdge("inputContext", "environmentalAnalysis");
     workflow.addEdge("environmentalAnalysis", "suitabilityReasoner");
@@ -389,12 +342,6 @@ const buildSuitabilityWorkflow = () => {
     return workflow.compile();
 };
 
-/**
- * Main function to run suitability analysis
- * @param {Object} projectDetails - Project information
- * @param {Object} environmentalContext - Environmental data
- * @returns {Object} Suitability recommendation
- */
 export const analyzeSuitability = async (projectDetails, environmentalContext) => {
     console.log("\n🌱 Starting Suitability Analysis...");
     console.log(`Project: ${projectDetails.name}`);

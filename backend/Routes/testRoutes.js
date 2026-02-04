@@ -5,7 +5,6 @@ import { generateAlertContent } from '../aiAgents/alertGeneratorAgent.js';
 
 const router = express.Router();
 
-// Test alert generation and email
 router.post('/alert', async (req, res) => {
     try {
         const { email, name } = req.body;
@@ -20,7 +19,6 @@ router.post('/alert', async (req, res) => {
         console.log(`\n🧪 Testing Alert Email Generation...`);
         console.log(`📧 Recipient: ${email}`);
 
-        // Generate AI alert content
         const alertData = {
             projectName: 'Test Plantation - Critical Health Alert',
             location: 'Pune, Maharashtra',
@@ -41,7 +39,6 @@ router.post('/alert', async (req, res) => {
         console.log('✓ AI content generated');
         console.log(`  Subject: ${aiContent.subject}`);
 
-        // Send email
         console.log('📤 Sending alert email...');
         const emailResult = await sendAlertEmail(email, aiContent.subject, aiContent.htmlBody);
 
@@ -70,7 +67,6 @@ router.post('/alert', async (req, res) => {
     }
 });
 
-// Test action recommendation with email
 router.post('/recommendation-alert', async (req, res) => {
     try {
         const { email, name } = req.body;
@@ -85,7 +81,6 @@ router.post('/recommendation-alert', async (req, res) => {
         console.log(`\n🧪 Testing Action Recommendation Alert...`);
         console.log(`📧 Recipient: ${email}`);
 
-        // Simulate action recommendation alert
         const recommendationData = {
             projectName: 'Sustainable Teak Plantation',
             location: 'Pune District, Maharashtra',
@@ -106,7 +101,6 @@ router.post('/recommendation-alert', async (req, res) => {
         console.log('✓ AI content generated');
         console.log(`  Subject: ${aiContent.subject}`);
 
-        // Send email
         console.log('📤 Sending recommendation alert email...');
         const emailResult = await sendAlertEmail(email, aiContent.subject, aiContent.htmlBody);
 

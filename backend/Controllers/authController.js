@@ -9,7 +9,6 @@ export const googleLogin = async (req, res) => {
     try {
         const { token } = req.body;
 
-        // Verify Google Token
         const ticket = await client.verifyIdToken({
             idToken: token,
             audience: process.env.GOOGLE_CLIENT_ID,
@@ -17,7 +16,6 @@ export const googleLogin = async (req, res) => {
 
         const { name, email, picture, sub: googleId } = ticket.getPayload();
 
-        // Check if user exists
         let user = await User.findOne({ email });
 
         if (!user) {

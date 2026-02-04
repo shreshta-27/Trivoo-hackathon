@@ -1,13 +1,5 @@
-/**
- * Chart Data Formatter Utility
- * Formats backend data into Chart.js compatible format
- */
 
-/**
- * Format health history data for Chart.js line chart
- * @param {Array} healthHistory - Array of health history records
- * @returns {Object} Chart.js compatible data object
- */
+
 export const formatHealthChartData = (healthHistory) => {
     if (!healthHistory || healthHistory.length === 0) {
         return {
@@ -42,11 +34,6 @@ export const formatHealthChartData = (healthHistory) => {
     };
 };
 
-/**
- * Format risk signals data for Chart.js doughnut chart
- * @param {Array} riskSignals - Array of risk signal records
- * @returns {Object} Chart.js compatible data object
- */
 export const formatRiskChartData = (riskSignals) => {
     if (!riskSignals || riskSignals.length === 0) {
         return {
@@ -87,11 +74,6 @@ export const formatRiskChartData = (riskSignals) => {
     };
 };
 
-/**
- * Format maintenance actions data for Chart.js bar chart
- * @param {Array} maintenanceActions - Array of maintenance action records
- * @returns {Object} Chart.js compatible data object
- */
 export const formatMaintenanceChartData = (maintenanceActions) => {
     if (!maintenanceActions || maintenanceActions.length === 0) {
         return {
@@ -125,11 +107,6 @@ export const formatMaintenanceChartData = (maintenanceActions) => {
     };
 };
 
-/**
- * Format suitability data for Chart.js radar chart
- * @param {Object} suitabilityData - Suitability analysis data
- * @returns {Object} Chart.js compatible data object
- */
 export const formatSuitabilityChartData = (suitabilityData) => {
     if (!suitabilityData) {
         return {
@@ -163,11 +140,6 @@ export const formatSuitabilityChartData = (suitabilityData) => {
     };
 };
 
-/**
- * Format project statistics for Chart.js bar chart
- * @param {Array} projects - Array of project records
- * @returns {Object} Chart.js compatible data object
- */
 export const formatProjectStatsChartData = (projects) => {
     if (!projects || projects.length === 0) {
         return {
@@ -207,11 +179,6 @@ export const formatProjectStatsChartData = (projects) => {
     };
 };
 
-/**
- * Format environmental data for Chart.js mixed chart
- * @param {Object} environmentalData - Environmental data object
- * @returns {Object} Chart.js compatible data object
- */
 export const formatEnvironmentalChartData = (environmentalData) => {
     if (!environmentalData) {
         return {

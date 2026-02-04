@@ -8,25 +8,21 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }) {
     const [view, setView] = useState(initialView);
     const [showPassword, setShowPassword] = useState(false);
 
-    // Form states
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    // Update view when initialView changes
     useEffect(() => {
         setView(initialView);
     }, [initialView]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Navigate to dashboard
         router.push('/dashboard');
     };
 
     const switchView = (newView) => {
         setView(newView);
-        // Reset form
         setFullName('');
         setEmail('');
         setPassword('');
@@ -37,7 +33,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }) {
         <AnimatePresence>
             {isOpen && (
                 <>
-                    {/* Backdrop */}
+                    {}
                     <motion.div
                         style={{
                             position: 'fixed',
@@ -56,7 +52,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }) {
                         onClick={onClose}
                     />
 
-                    {/* Modal */}
+                    {}
                     <motion.div
                         style={{
                             position: 'fixed',
@@ -79,7 +75,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }) {
                         transition={{ duration: 0.3, ease: 'easeOut' }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Close Button */}
+                        {}
                         <motion.button
                             onClick={onClose}
                             style={{
@@ -107,7 +103,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }) {
                             <X style={{ width: '20px', height: '20px' }} />
                         </motion.button>
 
-                        {/* Logo */}
+                        {}
                         <motion.div
                             style={{
                                 display: 'flex',
@@ -149,7 +145,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }) {
                             </span>
                         </motion.div>
 
-                        {/* Title */}
+                        {}
                         <motion.h2
                             style={{
                                 fontSize: '1.875rem',
@@ -166,7 +162,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }) {
                             {view === 'login' ? 'Welcome Back' : 'Create Account'}
                         </motion.h2>
 
-                        {/* Form */}
+                        {}
                         <form onSubmit={handleSubmit}>
                             <AnimatePresence mode="wait">
                                 {view === 'login' ? (
@@ -177,7 +173,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }) {
                                         exit={{ opacity: 0, x: 20 }}
                                         transition={{ duration: 0.3 }}
                                     >
-                                        {/* Email Field */}
+                                        {}
                                         <div style={{ marginBottom: '1.25rem' }}>
                                             <label
                                                 style={{
@@ -218,7 +214,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }) {
                                             />
                                         </div>
 
-                                        {/* Password Field */}
+                                        {}
                                         <div style={{ marginBottom: '1.5rem' }}>
                                             <label
                                                 style={{
@@ -282,7 +278,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }) {
                                             </div>
                                         </div>
 
-                                        {/* Login Button */}
+                                        {}
                                         <motion.button
                                             type="submit"
                                             style={{
@@ -306,7 +302,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }) {
                                             Log In
                                         </motion.button>
 
-                                        {/* Switch to Sign Up */}
+                                        {}
                                         <div
                                             style={{
                                                 textAlign: 'center',
@@ -342,7 +338,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }) {
                                         exit={{ opacity: 0, x: 20 }}
                                         transition={{ duration: 0.3 }}
                                     >
-                                        {/* Full Name Field */}
+                                        {}
                                         <div style={{ marginBottom: '1.25rem' }}>
                                             <label
                                                 style={{
@@ -383,7 +379,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }) {
                                             />
                                         </div>
 
-                                        {/* Email Field */}
+                                        {}
                                         <div style={{ marginBottom: '1.25rem' }}>
                                             <label
                                                 style={{
@@ -424,7 +420,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }) {
                                             />
                                         </div>
 
-                                        {/* Password Field */}
+                                        {}
                                         <div style={{ marginBottom: '1.5rem' }}>
                                             <label
                                                 style={{
@@ -488,7 +484,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }) {
                                             </div>
                                         </div>
 
-                                        {/* Create Account Button */}
+                                        {}
                                         <motion.button
                                             type="submit"
                                             style={{
@@ -512,7 +508,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }) {
                                             Create Account
                                         </motion.button>
 
-                                        {/* Switch to Login */}
+                                        {}
                                         <div
                                             style={{
                                                 textAlign: 'center',

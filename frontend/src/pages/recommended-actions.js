@@ -19,10 +19,8 @@ export default function RecommendedActions() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Simulate API call to GET /actions
         const fetchActions = async () => {
             setLoading(true);
-            // Mock data - replace with actual API call later
             const mockActions = [
                 {
                     id: 1,
@@ -89,7 +87,6 @@ export default function RecommendedActions() {
                 },
             ];
 
-            // Sort by priority: critical > high > medium > low
             const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
             const sortedActions = mockActions.sort(
                 (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]
@@ -171,7 +168,7 @@ export default function RecommendedActions() {
     return (
         <DashboardLayout activePage="dashboard">
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                {/* Back Button */}
+                {}
                 <motion.button
                     onClick={() => router.push('/dashboard')}
                     style={{
@@ -197,7 +194,7 @@ export default function RecommendedActions() {
                     Back to Dashboard
                 </motion.button>
 
-                {/* Header */}
+                {}
                 <motion.div
                     style={{ marginBottom: '2.5rem' }}
                     initial={{ opacity: 0, y: -20 }}
@@ -238,7 +235,7 @@ export default function RecommendedActions() {
                     </p>
                 </motion.div>
 
-                {/* Stats Summary */}
+                {}
                 <motion.div
                     style={{
                         display: 'grid',
@@ -285,7 +282,7 @@ export default function RecommendedActions() {
                     ))}
                 </motion.div>
 
-                {/* Action Cards */}
+                {}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     {actions.map((action, index) => {
                         const config = getPriorityConfig(action.priority);
@@ -314,7 +311,7 @@ export default function RecommendedActions() {
                                 whileTap={{ scale: 0.99, y: -3 }}
                                 onClick={() => router.push(`/project-detail?id=${action.projectId}`)}
                             >
-                                {/* Background Gradient */}
+                                {}
                                 <div
                                     style={{
                                         position: 'absolute',
@@ -329,7 +326,7 @@ export default function RecommendedActions() {
                                 />
 
                                 <div style={{ position: 'relative', zIndex: 1 }}>
-                                    {/* Header Row */}
+                                    {}
                                     <div
                                         style={{
                                             display: 'flex',
@@ -394,7 +391,7 @@ export default function RecommendedActions() {
                                             </h3>
                                         </div>
 
-                                        {/* Confidence Score */}
+                                        {}
                                         <motion.div
                                             style={{
                                                 display: 'flex',
@@ -418,7 +415,7 @@ export default function RecommendedActions() {
                                         </motion.div>
                                     </div>
 
-                                    {/* Project Name */}
+                                    {}
                                     <div
                                         style={{
                                             display: 'flex',
@@ -434,7 +431,7 @@ export default function RecommendedActions() {
                                         </p>
                                     </div>
 
-                                    {/* Reason */}
+                                    {}
                                     <div
                                         style={{
                                             padding: '1rem',
@@ -451,7 +448,7 @@ export default function RecommendedActions() {
                                         </p>
                                     </div>
 
-                                    {/* Click Indicator */}
+                                    {}
                                     <motion.div
                                         style={{
                                             position: 'absolute',
@@ -482,7 +479,7 @@ export default function RecommendedActions() {
                     })}
                 </div>
 
-                {/* Empty State (if no actions) */}
+                {}
                 {actions.length === 0 && (
                     <motion.div
                         className="glass-card"

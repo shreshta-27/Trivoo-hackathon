@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import { v2 as cloudinary } from 'cloudinary';
 import { sendWelcomeEmail, sendLoginEmail } from '../utils/emailService.js';
 
-// Configure Cloudinary
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -160,7 +159,6 @@ export const deleteUser = async (req, res) => {
     }
 };
 
-// Logout user (client-side token removal, optional server-side tracking)
 export const logoutUser = async (req, res) => {
     try {
         res.json({ message: 'User logged out successfully' });
@@ -169,7 +167,6 @@ export const logoutUser = async (req, res) => {
     }
 };
 
-// Update profile image
 export const updateProfileImage = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
@@ -184,13 +181,11 @@ export const updateProfileImage = async (req, res) => {
             return res.status(400).json({ message: 'Please provide an image' });
         }
 
-        // Delete old image from Cloudinary if exists
         if (user.avatar && user.avatar.includes('cloudinary')) {
             const publicId = user.avatar.split('/').pop().split('.')[0];
             await cloudinary.uploader.destroy(`trivo/avatars/${publicId}`);
         }
 
-        // Upload new image to Cloudinary
         const uploadResponse = await cloudinary.uploader.upload(avatar, {
             folder: 'trivo/avatars',
             width: 300,
@@ -214,7 +209,6 @@ export const updateProfileImage = async (req, res) => {
     }
 };
 
-// Remove profile image
 export const removeProfileImage = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
@@ -223,7 +217,6 @@ export const removeProfileImage = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Delete image from Cloudinary if exists
         if (user.avatar && user.avatar.includes('cloudinary')) {
             const publicId = user.avatar.split('/').pop().split('.')[0];
             await cloudinary.uploader.destroy(`trivo/avatars/${publicId}`);

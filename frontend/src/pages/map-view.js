@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import DashboardLayout from '../components/DashboardLayout';
 import { MapPin, Layers, Info, AlertTriangle } from 'lucide-react';
 
-// Dynamic import for Leaflet to avoid SSR issues
 const MapContainer = dynamic(
     () => import('react-leaflet').then((mod) => mod.MapContainer),
     { ssr: false }
@@ -27,7 +26,6 @@ const Circle = dynamic(
     { ssr: false }
 );
 
-
 export default function MapView() {
     const router = useRouter();
     const { region } = router.query;
@@ -35,7 +33,6 @@ export default function MapView() {
     const [mapReady, setMapReady] = useState(false);
     const [isSatelliteView, setIsSatelliteView] = useState(false);
 
-    // Region data with coordinates (latitude, longitude)
     const regions = [
         {
             id: 1,
@@ -100,10 +97,8 @@ export default function MapView() {
     ];
 
     useEffect(() => {
-        // Import Leaflet CSS
         import('leaflet/dist/leaflet.css');
 
-        // Fix for default marker icons in Next.js
         import('leaflet').then((L) => {
             delete L.Icon.Default.prototype._getIconUrl;
             L.Icon.Default.mergeOptions({
@@ -114,7 +109,6 @@ export default function MapView() {
             setMapReady(true);
         });
 
-        // Set selected region from query parameter
         if (region) {
             const regionData = regions.find((r) => r.id === parseInt(region));
             if (regionData) {
@@ -153,18 +147,16 @@ export default function MapView() {
         }
     };
 
-    // Default center (world view)
     const defaultCenter = [20, 0];
     const defaultZoom = 2;
 
-    // If a region is selected, center on it
     const mapCenter = selectedRegion ? selectedRegion.coordinates : defaultCenter;
     const mapZoom = selectedRegion ? 6 : defaultZoom;
 
     return (
         <DashboardLayout activePage="map-view">
             <div style={{ maxWidth: '100%', height: 'calc(100vh - 4rem)' }}>
-                {/* Header */}
+                {}
                 <motion.div
                     style={{ marginBottom: '1.5rem' }}
                     initial={{ opacity: 0, y: -20 }}
@@ -189,7 +181,7 @@ export default function MapView() {
                     </p>
                 </motion.div>
 
-                {/* Map Container */}
+                {}
                 <motion.div
                     className="glass-card"
                     style={{
@@ -202,7 +194,7 @@ export default function MapView() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2, duration: 0.5 }}
                 >
-                    {/* Map View Toggle Button */}
+                    {}
                     <motion.div
                         style={{
                             position: 'absolute',
@@ -272,7 +264,7 @@ export default function MapView() {
                             }}
                             scrollWheelZoom={true}
                         >
-                            {/* Conditional Tile Layer based on view type */}
+                            {}
                             {isSatelliteView ? (
                                 <TileLayer
                                     attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
@@ -285,12 +277,12 @@ export default function MapView() {
                                 />
                             )}
 
-                            {/* Region Markers and Circles */}
+                            {}
                             {regions.map((region) => {
                                 const circleStyle = getCircleColor(region.status);
                                 return (
                                     <div key={region.id}>
-                                        {/* 2km radius circle */}
+                                        {}
                                         <Circle
                                             center={region.coordinates}
                                             radius={region.patchSize}
@@ -302,7 +294,7 @@ export default function MapView() {
                                             }}
                                         />
 
-                                        {/* Marker */}
+                                        {}
                                         <Marker
                                             position={region.coordinates}
                                             eventHandlers={{
@@ -411,7 +403,7 @@ export default function MapView() {
                         </div>
                     )}
 
-                    {/* Legend */}
+                    {}
                     <motion.div
                         style={{
                             position: 'absolute',

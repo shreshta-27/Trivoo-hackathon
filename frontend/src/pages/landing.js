@@ -168,7 +168,6 @@ export default function LandingPage() {
                                     key={item.name}
                                     onClick={() => {
                                         if (item.route.startsWith('#')) {
-                                            // Smooth scroll to section
                                             const element = document.querySelector(item.route);
                                             if (element) {
                                                 element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -258,7 +257,7 @@ export default function LandingPage() {
                 </nav>
 
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    {/* Information Section */}
+                    {}
                     <section id="information" style={{
                         maxWidth: '1400px',
                         margin: '0 auto',
@@ -437,7 +436,7 @@ export default function LandingPage() {
                         </div>
                     </section>
 
-                    {/* Features Section */}
+                    {}
                     <section id="features" style={{
                         maxWidth: '1400px',
                         margin: '0 auto',
@@ -469,7 +468,7 @@ export default function LandingPage() {
                         <AnimatedStats stats={statsData} />
                     </section>
 
-                    {/* About Section */}
+                    {}
                     <section id="about" style={{
                         maxWidth: '1400px',
                         margin: '0 auto',
@@ -570,7 +569,7 @@ export default function LandingPage() {
                     </section>
                 </div>
 
-                {/* Community/Footer Section */}
+                {}
                 <footer id="community" style={{
                     borderTop: '1px solid var(--glass-border)',
                     padding: '3rem 0',
@@ -717,7 +716,7 @@ export default function LandingPage() {
                 </footer>
             </div>
 
-            {/* Authentication Modal */}
+            {}
             <AuthModal
                 isOpen={isAuthModalOpen}
                 onClose={closeAuthModal}

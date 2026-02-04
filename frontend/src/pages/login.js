@@ -11,7 +11,6 @@ export default function LoginPage() {
 
     const handleLogin = (e) => {
         e.preventDefault();
-        // Navigate to dashboard after login
         router.push('/');
     };
 
@@ -38,7 +37,7 @@ export default function LoginPage() {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
             >
-                {/* Logo */}
+                {}
                 <motion.div
                     style={{
                         display: 'flex',
@@ -73,7 +72,7 @@ export default function LoginPage() {
                     </span>
                 </motion.div>
 
-                {/* Title */}
+                {}
                 <motion.h1
                     style={{
                         fontSize: '1.875rem',
@@ -89,9 +88,9 @@ export default function LoginPage() {
                     Login
                 </motion.h1>
 
-                {/* Form */}
+                {}
                 <form onSubmit={handleLogin}>
-                    {/* Email Field */}
+                    {}
                     <motion.div
                         style={{ marginBottom: '1.5rem' }}
                         initial={{ opacity: 0, x: -20 }}
@@ -128,7 +127,7 @@ export default function LoginPage() {
                         />
                     </motion.div>
 
-                    {/* Password Field */}
+                    {}
                     <motion.div
                         style={{ marginBottom: '0.75rem' }}
                         initial={{ opacity: 0, x: -20 }}
@@ -200,7 +199,7 @@ export default function LoginPage() {
                         </div>
                     </motion.div>
 
-                    {/* Login Button */}
+                    {}
                     <motion.button
                         type="submit"
                         style={{
@@ -229,7 +228,7 @@ export default function LoginPage() {
                     </motion.button>
                 </form>
 
-                {/* Sign Up Link */}
+                {}
                 <motion.div
                     style={{
                         textAlign: 'center',

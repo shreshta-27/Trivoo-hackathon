@@ -3,7 +3,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Create transporter with explicit configuration
 const createTransporter = () => {
     return nodemailer.createTransport({
         host: 'smtp.gmail.com',

@@ -11,10 +11,6 @@ import {
 
 const router = express.Router();
 
-/**
- * Get health history chart data for a project
- * GET /api/charts/health/:projectId
- */
 router.get('/health/:projectId', async (req, res) => {
     try {
         const { projectId } = req.params;
@@ -45,10 +41,6 @@ router.get('/health/:projectId', async (req, res) => {
     }
 });
 
-/**
- * Get risk distribution chart data for a project
- * GET /api/charts/risks/:projectId
- */
 router.get('/risks/:projectId', async (req, res) => {
     try {
         const { projectId } = req.params;
@@ -79,10 +71,6 @@ router.get('/risks/:projectId', async (req, res) => {
     }
 });
 
-/**
- * Get maintenance timeline chart data for a project
- * GET /api/charts/maintenance/:projectId
- */
 router.get('/maintenance/:projectId', async (req, res) => {
     try {
         const { projectId } = req.params;
@@ -113,10 +101,6 @@ router.get('/maintenance/:projectId', async (req, res) => {
     }
 });
 
-/**
- * Get project statistics chart data for all user projects
- * GET /api/charts/projects/:userId
- */
 router.get('/projects/:userId', async (req, res) => {
     try {
         const { userId } = req.params;

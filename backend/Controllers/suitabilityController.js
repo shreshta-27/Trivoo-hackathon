@@ -10,23 +10,16 @@ export const assessSuitability = async (req, res) => {
 
         console.log(`🌍 Assessing suitability for [${lat}, ${lon}]...`);
 
-        // 1. Get Environmental Context (AI Estimate)
-        // We can optionally reverse geocode to get a place name for the explainer
-        // Using a comprehensive prompt or just coords.
         const envData = await getEnvironmentalContext(lat, lon);
         console.log('Environment:', envData);
 
-        // 2. Fetch All Species
         const allTrees = await TreeSpecies.find();
 
-        // 3. Deterministic Filtering
         const suitableTrees = filterSuitableTrees(allTrees, envData);
         console.log(`Found ${suitableTrees.length} suitable species.`);
 
-        // 4. Generate Explanations (AI)
         const explanations = await explainSuitability(suitableTrees, envData, plantationSize, `Coordinate ${lat},${lon}`);
 
-        // 5. Merge Data
         const finalResult = suitableTrees.map(tree => {
             const explanation = explanations.find(e => e.tree_name === tree.name);
             return {

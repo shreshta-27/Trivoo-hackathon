@@ -1,11 +1,5 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 
-/**
- * AI Service Manager
- * Handles rate limiting, model fallback, retry logic, and response caching
- */
-
-// Fallback models in priority order
 const FALLBACK_MODELS = [
     "gemini-2.0-flash-exp",
     "gemini-2.0-flash",
@@ -13,18 +7,15 @@ const FALLBACK_MODELS = [
     "gemini-1.5-pro"
 ];
 
-// Rate limiting configuration
 const RATE_LIMIT_CONFIG = {
     maxRequestsPerMinute: 15,
     maxRequestsPerHour: 500,
     cooldownPeriod: 60000 // 1 minute
 };
 
-// In-memory cache for AI responses
 const responseCache = new Map();
 const CACHE_TTL = 3600000; // 1 hour
 
-// Rate limiting trackers
 const rateLimitTracker = {
     requestsThisMinute: [],
     requestsThisHour: [],
@@ -34,25 +25,19 @@ const rateLimitTracker = {
     cooldownUntil: null
 };
 
-/**
- * Clean up old rate limit entries
- */
 const cleanupRateLimitTrackers = () => {
     const now = Date.now();
 
-    // Reset minute counter
     if (now - rateLimitTracker.lastResetMinute >= 60000) {
         rateLimitTracker.requestsThisMinute = [];
         rateLimitTracker.lastResetMinute = now;
     }
 
-    // Reset hour counter
     if (now - rateLimitTracker.lastResetHour >= 3600000) {
         rateLimitTracker.requestsThisHour = [];
         rateLimitTracker.lastResetHour = now;
     }
 
-    // Check cooldown
     if (rateLimitTracker.inCooldown && now >= rateLimitTracker.cooldownUntil) {
         rateLimitTracker.inCooldown = false;
         rateLimitTracker.cooldownUntil = null;
@@ -60,9 +45,6 @@ const cleanupRateLimitTrackers = () => {
     }
 };
 
-/**
- * Check if we're within rate limits
- */
 const checkRateLimit = () => {
     cleanupRateLimitTrackers();
 
@@ -84,26 +66,17 @@ const checkRateLimit = () => {
     }
 };
 
-/**
- * Record a successful API request
- */
 const recordRequest = () => {
     const now = Date.now();
     rateLimitTracker.requestsThisMinute.push(now);
     rateLimitTracker.requestsThisHour.push(now);
 };
 
-/**
- * Generate cache key from messages
- */
 const generateCacheKey = (messages, modelName) => {
     const content = messages.map(m => m.content).join('|');
     return `${modelName}:${Buffer.from(content).toString('base64').substring(0, 100)}`;
 };
 
-/**
- * Get cached response if available
- */
 const getCachedResponse = (cacheKey) => {
     const cached = responseCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
@@ -116,26 +89,18 @@ const getCachedResponse = (cacheKey) => {
     return null;
 };
 
-/**
- * Cache a response
- */
 const cacheResponse = (cacheKey, response) => {
     responseCache.set(cacheKey, {
         response,
         timestamp: Date.now()
     });
 
-    // Cleanup old cache entries
     if (responseCache.size > 100) {
         const oldestKey = responseCache.keys().next().value;
         responseCache.delete(oldestKey);
     }
 };
 
-/**
- * Get working model with fallback support
- * Tries models in order until one works
- */
 export const getWorkingModel = async (preferredModel = null) => {
     const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
 
@@ -159,7 +124,6 @@ export const getWorkingModel = async (preferredModel = null) => {
                 maxRetries: 0 // We handle retries ourselves
             });
 
-            // Test the model with a simple request
             await model.invoke([{ role: 'user', content: 'test' }]);
 
             console.log(`✓ Using model: ${modelName}`);
@@ -173,9 +137,6 @@ export const getWorkingModel = async (preferredModel = null) => {
     throw new Error('All AI models failed. Please check API key and quota.');
 };
 
-/**
- * Invoke AI with retry logic, rate limiting, and caching
- */
 export const invokeAIWithRetry = async (messages, options = {}) => {
     const {
         maxRetries = 3,
@@ -185,7 +146,6 @@ export const invokeAIWithRetry = async (messages, options = {}) => {
         preferredModel = null
     } = options;
 
-    // Check rate limits first
     try {
         checkRateLimit();
     } catch (error) {
@@ -193,7 +153,6 @@ export const invokeAIWithRetry = async (messages, options = {}) => {
         throw error;
     }
 
-    // Try to get cached response
     if (useCache) {
         const cacheKey = generateCacheKey(messages, preferredModel || 'default');
         const cached = getCachedResponse(cacheKey);
@@ -210,18 +169,14 @@ export const invokeAIWithRetry = async (messages, options = {}) => {
             attempt++;
             console.log(`AI request attempt ${attempt}/${maxRetries}`);
 
-            // Get working model
             const { model, modelName } = await getWorkingModel(preferredModel);
 
-            // Invoke the model
             const startTime = Date.now();
             const response = await model.invoke(messages);
             const processingTime = Date.now() - startTime;
 
-            // Record successful request
             recordRequest();
 
-            // Cache the response
             if (useCache) {
                 const cacheKey = generateCacheKey(messages, modelName);
                 cacheResponse(cacheKey, response);
@@ -243,12 +198,10 @@ export const invokeAIWithRetry = async (messages, options = {}) => {
             lastError = error;
             console.warn(`Attempt ${attempt} failed: ${error.message}`);
 
-            // Don't retry on rate limit errors
             if (error.message.includes('Rate limit') || error.message.includes('quota')) {
                 throw error;
             }
 
-            // Wait before retrying
             if (attempt < maxRetries) {
                 const delay = exponentialBackoff
                     ? retryDelay * Math.pow(2, attempt - 1)
@@ -263,14 +216,10 @@ export const invokeAIWithRetry = async (messages, options = {}) => {
     throw new Error(`AI request failed after ${maxRetries} attempts. Last error: ${lastError?.message}`);
 };
 
-/**
- * Parse JSON from AI response with error handling
- */
 export const parseAIResponse = (response) => {
     try {
         let content = response.content;
 
-        // Handle markdown code blocks
         if (content.includes('```json')) {
             content = content.split('```json')[1].split('```')[0].trim();
         } else if (content.includes('```')) {
@@ -283,9 +232,6 @@ export const parseAIResponse = (response) => {
     }
 };
 
-/**
- * Get rate limit status
- */
 export const getRateLimitStatus = () => {
     cleanupRateLimitTrackers();
 
@@ -300,9 +246,6 @@ export const getRateLimitStatus = () => {
     };
 };
 
-/**
- * Clear response cache
- */
 export const clearCache = () => {
     responseCache.clear();
     console.log('✓ Response cache cleared');

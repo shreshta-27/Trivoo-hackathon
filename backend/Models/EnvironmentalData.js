@@ -77,10 +77,8 @@ const environmentalDataSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// GeoJSON index for spatial queries
 environmentalDataSchema.index({ location: '2dsphere' });
 
-// Static method to find environmental data near a location
 environmentalDataSchema.statics.findNearLocation = async function (longitude, latitude, maxDistance = 50000) {
     return await this.findOne({
         location: {
@@ -95,17 +93,13 @@ environmentalDataSchema.statics.findNearLocation = async function (longitude, la
     });
 };
 
-// Static method to get or create environmental data for a location
 environmentalDataSchema.statics.getOrCreateForLocation = async function (longitude, latitude) {
-    // Try to find existing data nearby
     let envData = await this.findNearLocation(longitude, latitude);
 
     if (envData) {
         return envData;
     }
 
-    // If no data found, create mock data based on general Indian climate patterns
-    // This is a simplified mock - in production, this would call real APIs
     const mockData = {
         location: {
             type: 'Point',

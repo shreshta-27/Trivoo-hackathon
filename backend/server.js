@@ -61,13 +61,9 @@ import futureRiskRoutes from './Routes/futureRiskRoutes.js';
 import futurescapeRoutes from './Routes/futurescapeRoutes.js';
 import { runRiskForecastJob } from './Controllers/riskForecastController.js';
 
-// ... (previous code)
-
 plantingSocket(io);
 seedTreeData();
 
-// Scheduler: Run Risk Forecast everyday (86400000 ms)
-// For Hackathon demo: Run on startup then every hour
 setTimeout(() => {
     runRiskForecastJob();
 }, 10000); // Run 10s after startup

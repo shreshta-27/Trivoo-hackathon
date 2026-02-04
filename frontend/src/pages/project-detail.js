@@ -20,7 +20,6 @@ export default function ProjectDetail() {
     const { id } = router.query;
     const [project, setProject] = useState(null);
 
-    // Format date consistently to avoid hydration errors
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         const month = date.getMonth() + 1;
@@ -31,7 +30,6 @@ export default function ProjectDetail() {
 
     useEffect(() => {
         if (id) {
-            // Simulate fetching project data
             const projectData = {
                 id: parseInt(id),
                 name: 'Amazon Reforestation Initiative',
@@ -143,7 +141,7 @@ export default function ProjectDetail() {
     return (
         <DashboardLayout activePage="my-projects">
             <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-                {/* Back Button */}
+                {}
                 <motion.button
                     onClick={() => router.push('/my-projects')}
                     style={{
@@ -169,7 +167,7 @@ export default function ProjectDetail() {
                     Back to Projects
                 </motion.button>
 
-                {/* Project Summary */}
+                {}
                 <motion.div
                     className="glass-card"
                     style={{ padding: '2rem', marginBottom: '2rem' }}
@@ -251,7 +249,7 @@ export default function ProjectDetail() {
                     </div>
                 </motion.div>
 
-                {/* Health Timeline */}
+                {}
                 <motion.div
                     className="glass-card"
                     style={{ padding: '2rem', marginBottom: '2rem' }}
@@ -307,7 +305,7 @@ export default function ProjectDetail() {
                 </motion.div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem' }}>
-                    {/* Risks */}
+                    {}
                     <motion.div
                         className="glass-card"
                         style={{ padding: '2rem' }}
@@ -370,7 +368,7 @@ export default function ProjectDetail() {
                         </div>
                     </motion.div>
 
-                    {/* Recommended Actions */}
+                    {}
                     <motion.div
                         className="glass-card"
                         style={{ padding: '2rem' }}
@@ -431,7 +429,7 @@ export default function ProjectDetail() {
                     </motion.div>
                 </div>
 
-                {/* AI Insight */}
+                {}
                 <motion.div
                     className="glass-card"
                     style={{

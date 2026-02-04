@@ -3,7 +3,6 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Sphere, MeshDistortMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 
-// Floating Leaf Component
 function FloatingLeaf({ position, scale, rotationSpeed }) {
   const meshRef = useRef();
   const floatOffset = useMemo(() => Math.random() * Math.PI * 2, []);
@@ -31,7 +30,6 @@ function FloatingLeaf({ position, scale, rotationSpeed }) {
   );
 }
 
-// Particle System for Ambient Effects
 function ParticleField() {
   const particlesRef = useRef();
   const particleCount = 100;
@@ -73,7 +71,6 @@ function ParticleField() {
   );
 }
 
-// Central Glowing Sphere (Earth-like)
 function GlowingSphere() {
   const sphereRef = useRef();
 
@@ -99,7 +96,6 @@ function GlowingSphere() {
   );
 }
 
-// Main Nature 3D Scene
 export default function Nature3DScene() {
   const leaves = useMemo(() => {
     return Array.from({ length: 15 }, (_, i) => ({

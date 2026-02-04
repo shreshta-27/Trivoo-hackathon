@@ -5,15 +5,12 @@ import { googleLogin } from '../Controllers/authController.js';
 
 const router = express.Router();
 
-// Client-side Google OAuth (existing)
 router.post('/google', googleLogin);
 
-// Server-side Google OAuth - Initiates login
 router.get('/google', passport.authenticate('google', {
     scope: ['profile', 'email']
 }));
 
-// Google OAuth callback
 router.get('/google/callback',
     passport.authenticate('google', { failureRedirect: '/login' }),
     (req, res) => {

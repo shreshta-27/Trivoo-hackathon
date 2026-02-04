@@ -84,7 +84,6 @@ export const triggerActionRecommendation = async (req, res) => {
 
             savedRecommendations.push(recommendation);
 
-            // Trigger Alert if Critical
             if (rec.urgency === 'critical' || rec.urgency === 'immediate') {
                 import('./alertController.js').then(({ triggerAlert }) => {
                     triggerAlert({

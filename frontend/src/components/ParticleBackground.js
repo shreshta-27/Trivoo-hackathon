@@ -11,7 +11,6 @@ export default function ParticleBackground() {
         let animationFrameId;
         let particles = [];
 
-        // Set canvas size
         const resizeCanvas = () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -19,7 +18,6 @@ export default function ParticleBackground() {
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
-        // Particle class
         class Particle {
             constructor() {
                 this.x = Math.random() * canvas.width;
@@ -29,7 +27,6 @@ export default function ParticleBackground() {
                 this.speedY = (Math.random() - 0.5) * 0.5;
                 this.opacity = Math.random() * 0.5 + 0.2;
 
-                // Color variations - greens and blues
                 const colors = [
                     'rgba(16, 185, 129,', // emerald
                     'rgba(52, 211, 153,', // bright green
@@ -44,7 +41,6 @@ export default function ParticleBackground() {
                 this.x += this.speedX;
                 this.y += this.speedY;
 
-                // Wrap around edges
                 if (this.x > canvas.width) this.x = 0;
                 if (this.x < 0) this.x = canvas.width;
                 if (this.y > canvas.height) this.y = 0;
@@ -57,19 +53,16 @@ export default function ParticleBackground() {
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Add glow effect
                 ctx.shadowBlur = 10;
                 ctx.shadowColor = `${this.color} ${this.opacity * 0.8})`;
             }
         }
 
-        // Create particles
         const particleCount = Math.min(100, Math.floor((canvas.width * canvas.height) / 15000));
         for (let i = 0; i < particleCount; i++) {
             particles.push(new Particle());
         }
 
-        // Connect nearby particles
         const connectParticles = () => {
             const maxDistance = 150;
             for (let i = 0; i < particles.length; i++) {
@@ -91,7 +84,6 @@ export default function ParticleBackground() {
             }
         };
 
-        // Animation loop
         const animate = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -107,14 +99,12 @@ export default function ParticleBackground() {
 
         animate();
 
-        // Mouse interaction
         let mouse = { x: null, y: null, radius: 150 };
 
         const handleMouseMove = (e) => {
             mouse.x = e.clientX;
             mouse.y = e.clientY;
 
-            // Attract particles to mouse
             particles.forEach(particle => {
                 const dx = mouse.x - particle.x;
                 const dy = mouse.y - particle.y;
@@ -137,7 +127,6 @@ export default function ParticleBackground() {
         window.addEventListener('mousemove', handleMouseMove);
         window.addEventListener('mouseleave', handleMouseLeave);
 
-        // Cleanup
         return () => {
             window.removeEventListener('resize', resizeCanvas);
             window.removeEventListener('mousemove', handleMouseMove);

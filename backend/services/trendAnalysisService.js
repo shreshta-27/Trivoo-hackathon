@@ -6,9 +6,7 @@ export const analyzeTrends = (project, speciesData) => {
         riskFactors: []
     };
 
-    // 1. Health Trend (Slope)
     if (project.healthHistory && project.healthHistory.length >= 2) {
-        // Sort by date desc
         const sorted = project.healthHistory.sort((a, b) => b.recordedAt - a.recordedAt);
         const latest = sorted[0];
         const prev = sorted[Math.min(sorted.length - 1, 4)]; // Compare active to 5th last point
@@ -18,7 +16,6 @@ export const analyzeTrends = (project, speciesData) => {
         }
     }
 
-    // 2. Maintenance Gap
     const lastCare = project.careHistory && project.careHistory.length > 0
         ? project.careHistory[project.careHistory.length - 1].performedAt
         : project.createdAt;
@@ -26,9 +23,6 @@ export const analyzeTrends = (project, speciesData) => {
     const diffTime = Math.abs(new Date() - new Date(lastCare));
     trends.maintenanceGap = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    // 3. Compare with Needs
-    // If species needs "High" water/maintenace, gap > 10 is risky.
-    // If "Low", gap > 30 is risky.
     let riskThreshold = 30;
     if (speciesData.maintenance === 'High') riskThreshold = 7;
     if (speciesData.maintenance === 'Medium') riskThreshold = 14;
@@ -41,8 +35,6 @@ export const analyzeTrends = (project, speciesData) => {
         trends.riskFactors.push(`Health score declining (${trends.healthSlope} pts recently)`);
     }
 
-    // 4. Mock Weather Trend (Hackathon simplification)
-    // Assume Summer (May/June) is risky for dry species
     const month = new Date().getMonth();
     if (month >= 4 && month <= 6 && speciesData.water_need === 'High') {
         trends.riskFactors.push('Approaching peak summer for high-water species');

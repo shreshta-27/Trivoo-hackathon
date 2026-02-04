@@ -3,11 +3,9 @@ import { Canvas, useFrame, useLoader } from '@react-three/fiber';
 import { OrbitControls, Stars, Sphere, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 
-// Realistic Earth with textures
 function Earth() {
     const earthRef = useRef();
 
-    // Load Earth textures (using placeholder colors for now, can be replaced with actual texture URLs)
     const earthTexture = useTexture({
         map: 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg',
         normalMap: 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_normal_2048.jpg',
@@ -32,7 +30,6 @@ function Earth() {
     );
 }
 
-// Atmospheric glow around Earth
 function Atmosphere() {
     return (
         <Sphere args={[2.7, 64, 64]}>
@@ -46,7 +43,6 @@ function Atmosphere() {
     );
 }
 
-// Clouds layer
 function Clouds() {
     const cloudsRef = useRef();
 
@@ -67,7 +63,6 @@ function Clouds() {
     );
 }
 
-// Main Earth Scene Component
 export default function RealisticEarth() {
     return (
         <div style={{ width: '100%', height: '100%', background: 'transparent' }}>

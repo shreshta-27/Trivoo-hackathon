@@ -49,7 +49,7 @@ export default function AnimatedStats({ stats }) {
                         transition={{ delay: index * 0.1, duration: 0.6 }}
                         whileHover={{ scale: 1.05 }}
                     >
-                        {/* Animated Icon */}
+                        {}
                         <motion.div
                             style={{
                                 width: '60px',
@@ -68,7 +68,7 @@ export default function AnimatedStats({ stats }) {
                             <Icon style={{ width: '30px', height: '30px', color: '#ffffff' }} />
                         </motion.div>
 
-                        {/* Label */}
+                        {}
                         <p style={{
                             fontSize: '0.875rem',
                             color: 'var(--text-secondary)',
@@ -80,7 +80,7 @@ export default function AnimatedStats({ stats }) {
                             {stat.label}
                         </p>
 
-                        {/* Animated Number */}
+                        {}
                         <div style={{
                             fontSize: '2.5rem',
                             fontWeight: '700',
@@ -95,7 +95,7 @@ export default function AnimatedStats({ stats }) {
                             {stat.suffix}
                         </div>
 
-                        {/* Description */}
+                        {}
                         <p style={{
                             fontSize: '0.875rem',
                             color: 'var(--text-muted)',
@@ -104,7 +104,7 @@ export default function AnimatedStats({ stats }) {
                             {stat.description}
                         </p>
 
-                        {/* Progress Bar (if percentage) */}
+                        {}
                         {stat.percentage && (
                             <motion.div
                                 style={{
@@ -131,7 +131,7 @@ export default function AnimatedStats({ stats }) {
                             </motion.div>
                         )}
 
-                        {/* Floating Particles */}
+                        {}
                         <motion.div
                             style={{
                                 position: 'absolute',

@@ -41,7 +41,6 @@ const incidentSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Index for geospatial queries
 incidentSchema.index({ location: '2dsphere' });
 
 const Incident = mongoose.model('Incident', incidentSchema);

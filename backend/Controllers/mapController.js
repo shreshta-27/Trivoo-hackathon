@@ -1,19 +1,11 @@
-/**
- * Map Controller
- * Handles map visualization data and region information
- */
+
 
 import Region from '../Models/Region.js';
 import Project from '../Models/Project.js';
 import { getRiskColor, getRiskDescription } from '../utils/riskCalculator.js';
 
-/**
- * Get all map data (regions with risk levels and projects)
- * @route GET /api/map/data
- */
 export const getMapData = async (req, res) => {
     try {
-        // Fetch all regions with populated projects
         const regions = await Region.find()
             .populate({
                 path: 'projects',
@@ -21,14 +13,11 @@ export const getMapData = async (req, res) => {
                 select: 'name location healthScore riskLevel treeType plantationSize activeRisks'
             });
 
-        // Calculate risk for each region and format response
         const mapData = await Promise.all(
             regions.map(async (region) => {
-                // Calculate region risk based on projects
                 await region.calculateRegionRisk();
                 await region.save();
 
-                // Format project data
                 const projectsData = region.projects.map(project => ({
                     id: project._id,
                     name: project.name,
@@ -43,7 +32,6 @@ export const getMapData = async (req, res) => {
                     }))
                 }));
 
-                // Aggregate risk types across all projects
                 const riskTypes = new Set();
                 region.projects.forEach(project => {
                     project.activeRisks.forEach(risk => {
@@ -81,10 +69,6 @@ export const getMapData = async (req, res) => {
     }
 };
 
-/**
- * Get detailed information for a specific region
- * @route GET /api/map/regions/:id
- */
 export const getRegionDetails = async (req, res) => {
     try {
         const { id } = req.params;
@@ -106,18 +90,14 @@ export const getRegionDetails = async (req, res) => {
             });
         }
 
-        // Calculate current risk
         await region.calculateRegionRisk();
 
-        // Get critical projects (health score < 50)
         const criticalProjects = region.projects.filter(p => p.healthScore < 50);
 
-        // Calculate average health score
         const avgHealthScore = region.projects.length > 0
             ? region.projects.reduce((sum, p) => sum + p.healthScore, 0) / region.projects.length
             : 0;
 
-        // Aggregate all risks
         const allRisks = [];
         const riskCounts = {};
 

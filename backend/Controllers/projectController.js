@@ -1,21 +1,13 @@
-/**
- * Project Controller
- * Handles CRUD operations for plantation projects
- */
+
 
 import Project from '../Models/Project.js';
 import Region from '../Models/Region.js';
 import User from '../Models/userSchema.js';
 
-/**
- * Get all projects with optional filtering
- * @route GET /api/projects
- */
 export const getAllProjects = async (req, res) => {
     try {
         const { region, manager, riskLevel, status, minHealth, maxHealth } = req.query;
 
-        // Build filter object
         const filter = {};
 
         if (region) filter.region = region;
@@ -49,10 +41,6 @@ export const getAllProjects = async (req, res) => {
     }
 };
 
-/**
- * Get a single project by ID
- * @route GET /api/projects/:id
- */
 export const getProjectById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -83,10 +71,6 @@ export const getProjectById = async (req, res) => {
     }
 };
 
-/**
- * Create a new project
- * @route POST /api/projects
- */
 export const createProject = async (req, res) => {
     try {
         const {
@@ -100,7 +84,6 @@ export const createProject = async (req, res) => {
             metadata
         } = req.body;
 
-        // Validate required fields
         if (!name || !location || !region || !manager || !plantationSize || !treeType) {
             return res.status(400).json({
                 success: false,
@@ -108,7 +91,6 @@ export const createProject = async (req, res) => {
             });
         }
 
-        // Verify region exists
         const regionExists = await Region.findById(region);
         if (!regionExists) {
             return res.status(404).json({
@@ -117,7 +99,6 @@ export const createProject = async (req, res) => {
             });
         }
 
-        // Verify manager exists
         const managerExists = await User.findById(manager);
         if (!managerExists) {
             return res.status(404).json({
@@ -126,7 +107,6 @@ export const createProject = async (req, res) => {
             });
         }
 
-        // Create project
         const project = await Project.create({
             name,
             location,
@@ -139,11 +119,9 @@ export const createProject = async (req, res) => {
             status: 'active'
         });
 
-        // Add project to region
         regionExists.projects.push(project._id);
         await regionExists.save();
 
-        // Recalculate region risk
         await regionExists.calculateRegionRisk();
         await regionExists.save();
 
@@ -166,10 +144,6 @@ export const createProject = async (req, res) => {
     }
 };
 
-/**
- * Update project health score
- * @route PATCH /api/projects/:id/health
- */
 export const updateProjectHealth = async (req, res) => {
     try {
         const { id } = req.params;
@@ -190,10 +164,8 @@ export const updateProjectHealth = async (req, res) => {
             });
         }
 
-        // Update health score
         project.healthScore = healthScore;
 
-        // Add new risks if provided
         if (risks && Array.isArray(risks)) {
             risks.forEach(risk => {
                 project.activeRisks.push({
@@ -204,7 +176,6 @@ export const updateProjectHealth = async (req, res) => {
             });
         }
 
-        // Add care action to history if provided
         if (careAction) {
             project.careHistory.push({
                 action: careAction.action,
@@ -215,7 +186,6 @@ export const updateProjectHealth = async (req, res) => {
 
         await project.save();
 
-        // Update region risk
         const region = await Region.findById(project.region);
         if (region) {
             await region.calculateRegionRisk();
@@ -241,10 +211,6 @@ export const updateProjectHealth = async (req, res) => {
     }
 };
 
-/**
- * Delete a project (soft delete)
- * @route DELETE /api/projects/:id
- */
 export const deleteProject = async (req, res) => {
     try {
         const { id } = req.params;
@@ -257,11 +223,9 @@ export const deleteProject = async (req, res) => {
             });
         }
 
-        // Soft delete
         project.status = 'abandoned';
         await project.save();
 
-        // Remove from region and recalculate risk
         const region = await Region.findById(project.region);
         if (region) {
             region.projects = region.projects.filter(p => p.toString() !== id);
@@ -283,10 +247,6 @@ export const deleteProject = async (req, res) => {
     }
 };
 
-/**
- * Get critical projects across all regions
- * @route GET /api/projects/critical
- */
 export const getCriticalProjects = async (req, res) => {
     try {
         const criticalProjects = await Project.getCriticalProjects();

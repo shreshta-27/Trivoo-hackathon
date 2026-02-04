@@ -17,7 +17,6 @@ import {
 export default function Dashboard() {
     const router = useRouter();
 
-    // Mock Data
     const summaryData = {
         totalRegions: 12,
         totalProjects: 48,
@@ -117,7 +116,7 @@ export default function Dashboard() {
     return (
         <DashboardLayout activePage="dashboard">
             <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-                {/* Header */}
+                {}
                 <motion.div
                     style={{ marginBottom: '2rem' }}
                     initial={{ opacity: 0, y: -20 }}
@@ -142,7 +141,7 @@ export default function Dashboard() {
                     </p>
                 </motion.div>
 
-                {/* Summary Cards */}
+                {}
                 <motion.div
                     style={{
                         display: 'grid',
@@ -258,7 +257,7 @@ export default function Dashboard() {
                     })}
                 </motion.div>
 
-                {/* Region Overview Section */}
+                {}
                 <motion.div
                     style={{ marginBottom: '3rem' }}
                     initial={{ opacity: 0 }}
@@ -423,7 +422,7 @@ export default function Dashboard() {
                     </div>
                 </motion.div>
 
-                {/* Active Risk Signals Section */}
+                {}
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}

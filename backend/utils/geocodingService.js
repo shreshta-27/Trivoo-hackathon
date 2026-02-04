@@ -1,8 +1,5 @@
-// Simple mock geocoding service
-// In production, use Google Maps Geocoding API or OpenStreetMap Nominatim
 
 export const geocodeLocation = async (locationText) => {
-    // Mock database of known locations for the hackathon context
     const locationMap = {
         'nashik': { lat: 19.9975, lon: 73.7898, type: 'city' },
         'pune': { lat: 18.5204, lon: 73.8567, type: 'city' },

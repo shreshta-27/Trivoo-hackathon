@@ -12,7 +12,6 @@ export default function SignUpPage() {
 
     const handleSignUp = (e) => {
         e.preventDefault();
-        // Navigate to dashboard after sign up
         router.push('/');
     };
 
@@ -39,7 +38,7 @@ export default function SignUpPage() {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
             >
-                {/* Logo */}
+                {}
                 <motion.div
                     style={{
                         display: 'flex',
@@ -74,7 +73,7 @@ export default function SignUpPage() {
                     </span>
                 </motion.div>
 
-                {/* Title */}
+                {}
                 <motion.h1
                     style={{
                         fontSize: '1.875rem',
@@ -90,9 +89,9 @@ export default function SignUpPage() {
                     Sign Up
                 </motion.h1>
 
-                {/* Form */}
+                {}
                 <form onSubmit={handleSignUp}>
-                    {/* Full Name Field */}
+                    {}
                     <motion.div
                         style={{ marginBottom: '1.5rem' }}
                         initial={{ opacity: 0, x: -20 }}
@@ -129,7 +128,7 @@ export default function SignUpPage() {
                         />
                     </motion.div>
 
-                    {/* Email Field */}
+                    {}
                     <motion.div
                         style={{ marginBottom: '1.5rem' }}
                         initial={{ opacity: 0, x: -20 }}
@@ -166,7 +165,7 @@ export default function SignUpPage() {
                         />
                     </motion.div>
 
-                    {/* Password Field */}
+                    {}
                     <motion.div
                         style={{ marginBottom: '0.75rem' }}
                         initial={{ opacity: 0, x: -20 }}
@@ -225,7 +224,7 @@ export default function SignUpPage() {
                         </div>
                     </motion.div>
 
-                    {/* Create Account Button */}
+                    {}
                     <motion.button
                         type="submit"
                         style={{
@@ -254,7 +253,7 @@ export default function SignUpPage() {
                     </motion.button>
                 </form>
 
-                {/* Log In Link */}
+                {}
                 <motion.div
                     style={{
                         textAlign: 'center',

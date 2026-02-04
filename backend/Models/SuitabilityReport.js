@@ -88,12 +88,10 @@ const suitabilityReportSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Indexes
 suitabilityReportSchema.index({ user: 1, createdAt: -1 });
 suitabilityReportSchema.index({ location: '2dsphere' });
 suitabilityReportSchema.index({ suitabilityStatus: 1 });
 
-// Static method to get user's report history
 suitabilityReportSchema.statics.getUserHistory = async function (userId, limit = 10) {
     return await this.find({ user: userId })
         .sort({ createdAt: -1 })
@@ -101,7 +99,6 @@ suitabilityReportSchema.statics.getUserHistory = async function (userId, limit =
         .select('-aiMetadata'); // Exclude AI metadata for cleaner response
 };
 
-// Static method to get reports by suitability status
 suitabilityReportSchema.statics.getByStatus = async function (status) {
     return await this.find({ suitabilityStatus: status })
         .populate('user', 'name email')

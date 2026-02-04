@@ -5,9 +5,9 @@ import { PROJECT_INSIGHT_SYSTEM_PROMPT, HEALTH_CHANGE_PROMPT, MAINTENANCE_FEEDBA
 
 const initializeLLM = () => {
     return new ChatGoogleGenerativeAI({
-        modelName: process.env.AI_MODEL || "gemini-pro",
+        model: process.env.AI_MODEL || "gemini-pro",
         temperature: parseFloat(process.env.AI_TEMPERATURE) || 0.3,
-        apiKey: process.env.GOOGLE_API_KEY
+        apiKey: process.env.GEMINI_API_KEY
     });
 };
 

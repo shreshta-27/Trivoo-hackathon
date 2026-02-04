@@ -3,17 +3,13 @@ import Incident from '../Models/Incident.js';
 import ProjectIncidentMatch from '../Models/ProjectIncidentMatch.js';
 import { fetchEnvironmentalNews } from '../utils/newsService.js';
 
-// Trigger the manual analysis pipeline
 export const triggerNewsAnalysis = async (req, res) => {
     try {
         console.log('📰 Triggering news intelligence pipeline...');
 
-        // This runs the full 8-node LangGraph workflow
         const result = await runNewsIntelligencePipeline();
 
         if (result.success) {
-            // Trigger Alerts for High Risk Matches
-            // Trigger Alerts for High Risk Matches
             if (result.matches && result.matches.length > 0) {
                 import('./alertController.js').then(async ({ triggerAlert }) => {
                     for (const match of result.matches) {
@@ -34,11 +30,6 @@ export const triggerNewsAnalysis = async (req, res) => {
                     }
                 }).catch(err => console.error('Alert trigger failed:', err));
             }
-
-
-            // ... wait, I should fix the query in agent first to include manager ...
-            // But to avoid backtracking too much, I'll just fetch here if needed or assume I fix the agent.
-            // Actually, fixing the agent query is cleaner.
 
             res.status(200).json({
                 success: true,
@@ -65,12 +56,10 @@ export const triggerNewsAnalysis = async (req, res) => {
     }
 };
 
-// Get all incidents related to a specific project
 export const getProjectIncidents = async (req, res) => {
     try {
         const { projectId } = req.params;
 
-        // Fetch matches from the DB
         const matches = await ProjectIncidentMatch.find({ project: projectId })
             .populate('incident')
             .sort({ createdAt: -1 });
@@ -98,10 +87,7 @@ export const getProjectIncidents = async (req, res) => {
     }
 };
 
-// Get incidents for all user projects (dashboard view)
 export const getUserIncidents = async (req, res) => {
-    // In a real app, filtering by user ownership would happen here.
-    // For now, simpler implementation assuming user access to stored matches.
     try {
         const matches = await ProjectIncidentMatch.find()
             .populate('incident')
@@ -123,13 +109,10 @@ export const getUserIncidents = async (req, res) => {
     }
 };
 
-// Simple Daily News Feed (Non-Analysed / Raw Filtered)
 export const getDailyNewsFeed = async (req, res) => {
     try {
-        // Fetches raw news and filters lightly
         const news = await fetchEnvironmentalNews();
 
-        // Simple deterministic keyword filter (reuse logic or import if shared)
         const keywords = ['forest', 'tree', 'fire', 'drought', 'rain', 'climate', 'plantation'];
         const filtered = news.filter(article => {
             const text = (article.title + " " + article.description).toLowerCase();

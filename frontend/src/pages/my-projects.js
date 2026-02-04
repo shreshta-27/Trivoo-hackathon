@@ -26,7 +26,6 @@ export default function MyProjects() {
     });
     const [analyzedData, setAnalyzedData] = useState(null);
 
-    // Format date consistently to avoid hydration errors
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         const month = date.getMonth() + 1;
@@ -35,8 +34,6 @@ export default function MyProjects() {
         return `${month}/${day}/${year}`;
     };
 
-
-    // Sample projects data
     const projects = [
         {
             id: 1,
@@ -76,7 +73,6 @@ export default function MyProjects() {
         },
     ];
 
-    // Available regions
     const regions = [
         { id: 1, name: 'Amazon Rainforest' },
         { id: 2, name: 'Great Barrier Reef' },
@@ -156,7 +152,7 @@ export default function MyProjects() {
     return (
         <DashboardLayout activePage="my-projects">
             <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-                {/* Header */}
+                {}
                 <motion.div
                     style={{
                         display: 'flex',
@@ -210,7 +206,7 @@ export default function MyProjects() {
                     </motion.button>
                 </motion.div>
 
-                {/* Project Cards Grid */}
+                {}
                 <div
                     style={{
                         display: 'grid',
@@ -345,7 +341,7 @@ export default function MyProjects() {
                     ))}
                 </div>
 
-                {/* Create Project Modal */}
+                {}
                 <AnimatePresence>
                     {showCreateModal && (
                         <motion.div
@@ -414,7 +410,7 @@ export default function MyProjects() {
                                     Step {createStep} of 3
                                 </p>
 
-                                {/* Step 1: Select Region */}
+                                {}
                                 {createStep === 1 && (
                                     <div>
                                         <h3
@@ -499,7 +495,7 @@ export default function MyProjects() {
                                     </div>
                                 )}
 
-                                {/* Step 2: Enter Details */}
+                                {}
                                 {createStep === 2 && (
                                     <div>
                                         <h3
@@ -667,7 +663,7 @@ export default function MyProjects() {
                                     </div>
                                 )}
 
-                                {/* Step 3: Analyze Data */}
+                                {}
                                 {createStep === 3 && (
                                     <div>
                                         <h3

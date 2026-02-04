@@ -24,7 +24,6 @@ const projectIncidentMatchSchema = new mongoose.Schema({
     aiReasoning: { type: String }
 }, { timestamps: true });
 
-// Compound index to prevent duplicate matches
 projectIncidentMatchSchema.index({ incident: 1, project: 1 }, { unique: true });
 
 const ProjectIncidentMatch = mongoose.model('ProjectIncidentMatch', projectIncidentMatchSchema);

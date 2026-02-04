@@ -1,11 +1,5 @@
-/**
- * Location Validation Middleware
- * Validates GeoJSON coordinates and location data
- */
 
-/**
- * Validate GeoJSON Point coordinates
- */
+
 export const validateLocation = (req, res, next) => {
     const { location } = req.body;
 
@@ -16,7 +10,6 @@ export const validateLocation = (req, res, next) => {
         });
     }
 
-    // Check if coordinates exist
     if (!location.coordinates || !Array.isArray(location.coordinates)) {
         return res.status(400).json({
             success: false,
@@ -24,7 +17,6 @@ export const validateLocation = (req, res, next) => {
         });
     }
 
-    // Validate coordinates length
     if (location.coordinates.length !== 2) {
         return res.status(400).json({
             success: false,
@@ -34,7 +26,6 @@ export const validateLocation = (req, res, next) => {
 
     const [longitude, latitude] = location.coordinates;
 
-    // Validate longitude range
     if (typeof longitude !== 'number' || longitude < -180 || longitude > 180) {
         return res.status(400).json({
             success: false,
@@ -42,7 +33,6 @@ export const validateLocation = (req, res, next) => {
         });
     }
 
-    // Validate latitude range
     if (typeof latitude !== 'number' || latitude < -90 || latitude > 90) {
         return res.status(400).json({
             success: false,
@@ -50,8 +40,6 @@ export const validateLocation = (req, res, next) => {
         });
     }
 
-    // Optionally validate if location is within India (for this specific use case)
-    // India approximate bounds: Lat 8-37, Long 68-97
     const isWithinIndia =
         latitude >= 6 && latitude <= 38 &&
         longitude >= 68 && longitude <= 98;
@@ -60,7 +48,6 @@ export const validateLocation = (req, res, next) => {
         req.locationWarning = 'Location appears to be outside India';
     }
 
-    // Set type to Point if not specified
     if (!location.type) {
         req.body.location.type = 'Point';
     }
@@ -68,9 +55,6 @@ export const validateLocation = (req, res, next) => {
     next();
 };
 
-/**
- * Validate coordinates from query parameters
- */
 export const validateCoordinatesQuery = (req, res, next) => {
     const { longitude, latitude } = req.query;
 
@@ -98,7 +82,6 @@ export const validateCoordinatesQuery = (req, res, next) => {
         });
     }
 
-    // Attach validated coordinates to request
     req.validatedCoordinates = { longitude: lon, latitude: lat };
 
     next();

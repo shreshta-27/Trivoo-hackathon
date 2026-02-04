@@ -1,6 +1,6 @@
 import express from 'express';
 import { createSession, getNearSessions, joinSession, getSpeciesList } from '../Controllers/plantingController.js';
-import { protect } from '../Middleware/authMiddleware.js';
+import { protect } from '../Middlewares/authMiddleware.js';
 
 const router = express.Router();
 

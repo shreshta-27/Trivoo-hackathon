@@ -36,7 +36,6 @@ export default function SimulationMode() {
     const [savedScenarios, setSavedScenarios] = useState([]);
     const canvasRef = useRef(null);
 
-    // Mock projects data
     const projects = [
         {
             id: 1,
@@ -86,7 +85,6 @@ export default function SimulationMode() {
         { id: 'early_harvest', name: 'Early Harvest', icon: Clock, color: '#10b981' },
     ];
 
-    // Three.js particle animation
     useEffect(() => {
         if (!canvasRef.current || !isSimulating) return;
 
@@ -226,7 +224,7 @@ export default function SimulationMode() {
         return (
             <DashboardLayout activePage="simulation-mode">
                 <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-                    {/* Header */}
+                    {}
                     <motion.div
                         style={{ marginBottom: '2.5rem' }}
                         initial={{ opacity: 0, y: -20 }}
@@ -267,7 +265,7 @@ export default function SimulationMode() {
                         </p>
                     </motion.div>
 
-                    {/* Project Selection Grid */}
+                    {}
                     <div
                         style={{
                             display: 'grid',
@@ -378,11 +376,10 @@ export default function SimulationMode() {
         );
     }
 
-    // Sandbox View
     return (
         <DashboardLayout activePage="simulation-mode">
             <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-                {/* Back Button */}
+                {}
                 <motion.button
                     onClick={handleExitSandbox}
                     style={{
@@ -408,7 +405,7 @@ export default function SimulationMode() {
                     Exit Sandbox
                 </motion.button>
 
-                {/* Simulation Warning Banner */}
+                {}
                 <motion.div
                     style={{
                         padding: '1rem 1.5rem',
@@ -430,7 +427,7 @@ export default function SimulationMode() {
                     </p>
                 </motion.div>
 
-                {/* Project Summary Header */}
+                {}
                 <motion.div
                     className="glass-card"
                     style={{ padding: '1.5rem', marginBottom: '2rem' }}
@@ -477,7 +474,7 @@ export default function SimulationMode() {
                 </motion.div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                    {/* Left Column: Scenario Configuration */}
+                    {}
                     <div>
                         <motion.div
                             className="glass-card"
@@ -496,7 +493,7 @@ export default function SimulationMode() {
                                 Configure Scenario
                             </h3>
 
-                            {/* Scenario Type Selector */}
+                            {}
                             <div style={{ marginBottom: '2rem' }}>
                                 <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.75rem', display: 'block' }}>
                                     Scenario Type
@@ -530,7 +527,7 @@ export default function SimulationMode() {
                                 </div>
                             </div>
 
-                            {/* Scenario Selection */}
+                            {}
                             <div style={{ marginBottom: '2rem' }}>
                                 <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.75rem', display: 'block' }}>
                                     Select Scenario
@@ -565,7 +562,7 @@ export default function SimulationMode() {
                                 </div>
                             </div>
 
-                            {/* Duration Slider */}
+                            {}
                             <div style={{ marginBottom: '2rem' }}>
                                 <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.75rem', display: 'block' }}>
                                     Duration: <strong style={{ color: '#8b5cf6' }}>{duration} days</strong>
@@ -591,7 +588,7 @@ export default function SimulationMode() {
                                 </div>
                             </div>
 
-                            {/* Severity Dropdown */}
+                            {}
                             <div style={{ marginBottom: '2rem' }}>
                                 <label style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.75rem', display: 'block' }}>
                                     Severity Level
@@ -618,7 +615,7 @@ export default function SimulationMode() {
                                 </select>
                             </div>
 
-                            {/* Action Buttons */}
+                            {}
                             <div style={{ display: 'flex', gap: '0.75rem' }}>
                                 <motion.button
                                     onClick={handleRunSimulation}
@@ -672,7 +669,7 @@ export default function SimulationMode() {
                         </motion.div>
                     </div>
 
-                    {/* Right Column: Results */}
+                    {}
                     <div>
                         <AnimatePresence mode="wait">
                             {isSimulating ? (
@@ -722,7 +719,7 @@ export default function SimulationMode() {
                                 </motion.div>
                             ) : results ? (
                                 <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                                    {/* Before/After Comparison */}
+                                    {}
                                     <motion.div className="glass-card" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
                                         <h3
                                             style={{
@@ -735,7 +732,7 @@ export default function SimulationMode() {
                                             Impact Analysis
                                         </h3>
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                            {/* Before */}
+                                            {}
                                             <div
                                                 style={{
                                                     padding: '1.25rem',
@@ -760,7 +757,7 @@ export default function SimulationMode() {
                                                 </p>
                                             </div>
 
-                                            {/* After */}
+                                            {}
                                             <div
                                                 style={{
                                                     padding: '1.25rem',
@@ -794,7 +791,7 @@ export default function SimulationMode() {
                                         </div>
                                     </motion.div>
 
-                                    {/* AI Insight Panel */}
+                                    {}
                                     <motion.div
                                         className="glass-card"
                                         style={{
@@ -826,7 +823,7 @@ export default function SimulationMode() {
                                         </p>
                                     </motion.div>
 
-                                    {/* Save Scenario Button */}
+                                    {}
                                     <motion.button
                                         onClick={handleSaveScenario}
                                         style={{
@@ -880,7 +877,7 @@ export default function SimulationMode() {
                     </div>
                 </div>
 
-                {/* Saved Scenarios Comparison */}
+                {}
                 {savedScenarios.length > 0 && (
                     <motion.div
                         style={{ marginTop: '2rem' }}

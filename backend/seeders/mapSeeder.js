@@ -7,7 +7,6 @@ import User from '../Models/userSchema.js';
 
 dotenv.config();
 
-// Connect to MongoDB
 const connectDB = async () => {
     try {
         await mongoose.connect(process.env.MONGO_URI);
@@ -18,7 +17,6 @@ const connectDB = async () => {
     }
 };
 
-// Sample regions data
 const regionsData = [
     {
         name: 'Nashik Zone',
@@ -94,7 +92,6 @@ const regionsData = [
     }
 ];
 
-// Sample projects data (will be created after regions and users)
 const projectsData = [
     {
         name: 'Teak Plantation Alpha',
@@ -216,7 +213,6 @@ const projectsData = [
     }
 ];
 
-// Environmental data for key locations
 const environmentalDataSamples = [
     {
         location: { type: 'Point', coordinates: [73.85, 20.0] },
@@ -278,24 +274,20 @@ const environmentalDataSamples = [
     }
 ];
 
-// Main seeder function
 const seedDatabase = async () => {
     try {
         console.log('\n🌱 Starting database seeding...\n');
 
-        // Clear existing data
         console.log('Clearing existing data...');
         await Region.deleteMany({});
         await Project.deleteMany({});
         await EnvironmentalData.deleteMany({});
         console.log('✓ Existing data cleared\n');
 
-        // Create regions
         console.log('Creating regions...');
         const regions = await Region.insertMany(regionsData);
         console.log(`✓ Created ${regions.length} regions\n`);
 
-        // Get or create a demo user (manager)
         console.log('Setting up demo user...');
         let demoUser = await User.findOne({ email: 'demo@trivo.com' });
         if (!demoUser) {
@@ -313,7 +305,6 @@ const seedDatabase = async () => {
         console.log(`  Email: demo@trivo.com`);
         console.log(`  Password: demo123\n`);
 
-        // Create projects
         console.log('Creating projects...');
         const projects = [];
         for (const projectData of projectsData) {
@@ -338,7 +329,6 @@ const seedDatabase = async () => {
 
             projects.push(project);
 
-            // Add project to region
             region.projects.push(project._id);
             await region.save();
 
@@ -346,7 +336,6 @@ const seedDatabase = async () => {
         }
         console.log(`✓ Created ${projects.length} projects\n`);
 
-        // Calculate region risks
         console.log('Calculating region risks...');
         for (const region of regions) {
             await region.populate('projects');
@@ -356,12 +345,10 @@ const seedDatabase = async () => {
         }
         console.log();
 
-        // Create environmental data
         console.log('Creating environmental data...');
         const envData = await EnvironmentalData.insertMany(environmentalDataSamples);
         console.log(`✓ Created ${envData.length} environmental data points\n`);
 
-        // Summary
         console.log('═══════════════════════════════════════');
         console.log('✅ Database seeding completed!');
         console.log('═══════════════════════════════════════');
@@ -388,5 +375,4 @@ const seedDatabase = async () => {
     }
 };
 
-// Run seeder
 connectDB().then(seedDatabase);

@@ -2,7 +2,6 @@ import axios from 'axios';
 
 const BASE_URL = 'http://localhost:5000';
 
-// Test data
 const testUser = {
     name: 'Test User',
     email: 'shreshtajunjuru@gmail.com',
@@ -25,7 +24,6 @@ const testProject = {
     }
 };
 
-// Color codes for console
 const colors = {
     reset: '\x1b[0m',
     green: '\x1b[32m',
@@ -43,7 +41,6 @@ const log = {
     warn: (msg) => console.log(`${colors.yellow}⚠ ${msg}${colors.reset}`)
 };
 
-// Test results tracker
 const results = {
     passed: 0,
     failed: 0,
@@ -66,7 +63,6 @@ async function runTest(name, testFn) {
     }
 }
 
-// Test 1: Server Health Check
 async function testServerHealth() {
     const response = await axios.get(`${BASE_URL}/`);
     if (response.data.message !== 'Trivo API is running') {
@@ -74,7 +70,6 @@ async function testServerHealth() {
     }
 }
 
-// Test 2: Get All Crops
 async function testGetAllCrops() {
     const response = await axios.get(`${BASE_URL}/api/crops/crops`);
     if (!response.data.success || response.data.count !== 10) {
@@ -83,7 +78,6 @@ async function testGetAllCrops() {
     log.info(`Found ${response.data.count} crops in database`);
 }
 
-// Test 3: Crop Recommendations
 async function testCropRecommendations() {
     const response = await axios.get(`${BASE_URL}/api/crops/recommendations`, {
         params: {
@@ -100,7 +94,6 @@ async function testCropRecommendations() {
     log.info(`Top recommendation: ${response.data.data.recommendations[0].crop.name} (Score: ${response.data.data.recommendations[0].suitability.score})`);
 }
 
-// Test 4: Region-Based Recommendations
 async function testRegionRecommendations() {
     const response = await axios.get(`${BASE_URL}/api/crops/region`, {
         params: { regionName: 'Pune' }
@@ -112,7 +105,6 @@ async function testRegionRecommendations() {
     log.info(`Top crop for Pune: ${response.data.data.recommendations[0].crop.name}`);
 }
 
-// Test 5: User Registration
 async function testUserRegistration() {
     try {
         const response = await axios.post(`${BASE_URL}/api/users/register`, testUser);
@@ -131,7 +123,6 @@ async function testUserRegistration() {
     }
 }
 
-// Test 6: User Login
 async function testUserLogin() {
     const response = await axios.post(`${BASE_URL}/api/users/login`, {
         email: testUser.email,
@@ -145,7 +136,6 @@ async function testUserLogin() {
     return response.data.token;
 }
 
-// Test 7: Email Service Test
 async function testEmailService() {
     const emailTest = await axios.post(`${BASE_URL}/api/test/email`, {
         email: 'shreshtajunjuru@gmail.com',
@@ -157,7 +147,6 @@ async function testEmailService() {
     log.info('Test email sent to shreshtajunjuru@gmail.com');
 }
 
-// Test 8: List All Databases
 async function testListDatabases() {
     const response = await axios.get(`${BASE_URL}/api/analytics/databases`);
     if (!response.data.success) {
@@ -166,36 +155,29 @@ async function testListDatabases() {
     log.info(`Found ${response.data.databases.length} databases`);
 }
 
-// Main test runner
 async function runAllTests() {
     console.log('\n' + '='.repeat(60));
     log.info('TRIVO BACKEND COMPREHENSIVE TEST SUITE');
     console.log('='.repeat(60) + '\n');
 
-    // Server Health Tests
     console.log('\n📡 SERVER HEALTH TESTS\n');
     await runTest('Server Health Check', testServerHealth);
 
-    // Crop System Tests
     console.log('\n🌱 CROP RECOMMENDATION TESTS\n');
     await runTest('Get All Crops', testGetAllCrops);
     await runTest('Crop Recommendations', testCropRecommendations);
     await runTest('Region-Based Recommendations', testRegionRecommendations);
 
-    // User System Tests
     console.log('\n👤 USER SYSTEM TESTS\n');
     await runTest('User Registration', testUserRegistration);
     await runTest('User Login', testUserLogin);
 
-    // Email Tests
     console.log('\n📧 EMAIL SERVICE TESTS\n');
     await runTest('Email Service', testEmailService);
 
-    // Database Tests
     console.log('\n💾 DATABASE TESTS\n');
     await runTest('List Databases', testListDatabases);
 
-    // Summary
     console.log('\n' + '='.repeat(60));
     log.info('TEST SUMMARY');
     console.log('='.repeat(60));
@@ -206,7 +188,6 @@ async function runAllTests() {
     }
     console.log('='.repeat(60) + '\n');
 
-    // Detailed Results
     console.log('\nDETAILED RESULTS:\n');
     results.tests.forEach((test, index) => {
         const status = test.status === 'PASS'
@@ -221,7 +202,6 @@ async function runAllTests() {
     process.exit(results.failed > 0 ? 1 : 0);
 }
 
-// Run tests
 runAllTests().catch(error => {
     log.error(`Test suite failed: ${error.message}`);
     process.exit(1);

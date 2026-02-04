@@ -1,12 +1,41 @@
-// Mock News Service for Demo/Testing
-// In production, this would connect to NewsAPI, GDELT, or similar services
+import axios from 'axios';
 
 export const fetchEnvironmentalNews = async () => {
-    // Simulating API latency
+    if (process.env.NEWS_API_KEY) {
+        try {
+            console.log("🌍 Fetching live news from NewsAPI...");
+            const response = await axios.get('https://newsapi.org/v2/everything', {
+                params: {
+                    q: 'agriculture OR forestry OR "climate change" OR reforestation AND India',
+                    language: 'en',
+                    sortBy: 'publishedAt',
+                    pageSize: 5,
+                    apiKey: process.env.NEWS_API_KEY
+                },
+                timeout: 8000
+            });
+
+            if (response.data.status === 'ok' && response.data.articles.length > 0) {
+                console.log(`✅ Fetched ${response.data.articles.length} articles from NewsAPI`);
+                return response.data.articles.map(article => ({
+                    title: article.title,
+                    description: article.description || article.content,
+                    source: {
+                        name: article.source.name,
+                        url: article.url
+                    },
+                    publishedAt: article.publishedAt
+                }));
+            }
+        } catch (error) {
+            console.warn(`⚠️ NewsAPI failed: ${error.message}. Falling back to mock data.`);
+        }
+    } else {
+        console.warn("⚠️ No NEWS_API_KEY found. Using mock data.");
+    }
+
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    // Hardcoded mock news for demonstration
-    // Includes a mix of relevant and irrelevant news, with different locations
     return [
         {
             title: "Forest fire reported near Nashik district amid heatwave",

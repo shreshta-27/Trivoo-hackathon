@@ -20,10 +20,10 @@ export default function DashboardLayout({ children, activePage = 'dashboard' }) 
             position: 'relative',
             overflow: 'hidden',
         }}>
-            {/* Background Effects */}
+            {}
             <ParticleBackground />
 
-            {/* Rotating Earth Background */}
+            {}
             <div style={{
                 position: 'fixed',
                 right: '-200px',
@@ -37,10 +37,10 @@ export default function DashboardLayout({ children, activePage = 'dashboard' }) 
                 <RealisticEarth />
             </div>
 
-            {/* Sidebar */}
+            {}
             <Sidebar activePage={activePage} />
 
-            {/* Main Content */}
+            {}
             <main style={{
                 marginLeft: '280px',
                 flex: 1,

@@ -2,15 +2,14 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { HumanMessage } from "@langchain/core/messages";
 import { SUITABILITY_EXPLAINER_PROMPT } from "./prompts/suitabilityPrompts.js";
 
-const llm = new ChatGoogleGenerativeAI({
-    modelName: process.env.AI_MODEL || "gemini-pro",
-    temperature: 0.3,
-    apiKey: process.env.GOOGLE_API_KEY
-});
-
 export const explainSuitability = async (suitableTrees, envData, plantationSize, locationName) => {
     try {
-        // Take top 5 to avoid context limit or slow response
+        const llm = new ChatGoogleGenerativeAI({
+            model: process.env.AI_MODEL || "gemini-pro",
+            temperature: 0.3,
+            apiKey: process.env.GEMINI_API_KEY
+        });
+
         const topTrees = suitableTrees.slice(0, 5);
         const treeListStr = topTrees.map(t => `${t.name} (Score: ${t.reforestation_score}, Soil: ${t.soil.join(',')})`).join('\n');
 

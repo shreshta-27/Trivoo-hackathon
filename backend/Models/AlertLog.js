@@ -31,7 +31,6 @@ const alertLogSchema = new mongoose.Schema({
     sentAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 
-// Index for idempotency checks (query by project + type + date)
 alertLogSchema.index({ project: 1, riskType: 1, sentAt: -1 });
 
 const AlertLog = mongoose.model('AlertLog', alertLogSchema);

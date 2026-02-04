@@ -14,16 +14,14 @@ import Project from "../Models/Project.js";
 import Incident from "../Models/Incident.js";
 import ProjectIncidentMatch from "../Models/ProjectIncidentMatch.js";
 
-// Initialize LLM
 const initializeLLM = () => {
     return new ChatGoogleGenerativeAI({
-        modelName: process.env.AI_MODEL || "gemini-pro",
+        model: process.env.AI_MODEL || "gemini-pro",
         temperature: 0.3,
-        apiKey: process.env.GOOGLE_API_KEY
+        apiKey: process.env.GEMINI_API_KEY
     });
 };
 
-// --- State Definition ---
 class NewsAnalysisState {
     constructor() {
         this.rawArticles = [];
@@ -35,9 +33,6 @@ class NewsAnalysisState {
     }
 }
 
-// --- Nodes ---
-
-// Node 1: Ingest News (Non-AI)
 const newsIngestionNode = async (state) => {
     try {
         console.log("📡 Fetching news...");
@@ -50,7 +45,6 @@ const newsIngestionNode = async (state) => {
     }
 };
 
-// Node 2: Relevance Filter (Deterministic keyword check to save LLM calls)
 const relevanceFilterNode = async (state) => {
     try {
         const keywords = ['forest', 'tree', 'fire', 'drought', 'rain', 'temperature', 'climate', 'logging', 'encroachment', 'farm', 'agriculture', 'plantation'];
@@ -69,7 +63,6 @@ const relevanceFilterNode = async (state) => {
     }
 };
 
-// Node 3: Incident Classification (LLM)
 const incidentClassificationNode = async (state) => {
     try {
         const llm = initializeLLM();
@@ -102,14 +95,12 @@ const incidentClassificationNode = async (state) => {
     }
 };
 
-// Node 4: Location Extraction (LLM + Service)
 const locationExtractionNode = async (state) => {
     try {
         const llm = initializeLLM();
         const located = [];
 
         for (const item of state.filteredArticles) {
-            // 1. LLM extracts text location
             const prompt = LOCATION_EXTRACTION_PROMPT
                 .replace('{title}', item.article.title)
                 .replace('{description}', item.article.description);
@@ -122,7 +113,6 @@ const locationExtractionNode = async (state) => {
             let content = response.content.replace(/```json/g, '').replace(/```/g, '').trim();
             const locData = JSON.parse(content);
 
-            // 2. Geocoding Service resolves to Coords
             const geoResult = await geocodeLocation(locData.locationText);
 
             if (geoResult.found) {
@@ -147,14 +137,11 @@ const locationExtractionNode = async (state) => {
     }
 };
 
-// Node 5: Proximity Matcher (Non-AI, DB Query)
 const proximityMatcherNode = async (state) => {
     try {
         const matches = [];
 
         for (const incident of state.locatedIncidents) {
-            // Find projects within 100km
-            // Note: In real app, use $near query. For demo with few projects, fetch all and calc distance.
             const allProjects = await Project.find({}, 'name location treeType plantationSize healthScore manager');
 
             for (const project of allProjects) {
@@ -182,7 +169,6 @@ const proximityMatcherNode = async (state) => {
     }
 };
 
-// Node 6: Impact Assessment (LLM)
 const impactAssessmentNode = async (state) => {
     try {
         const llm = initializeLLM();
@@ -220,7 +206,6 @@ const impactAssessmentNode = async (state) => {
     }
 };
 
-// Node 7: Insight Generator (LLM)
 const insightGeneratorNode = async (state) => {
     try {
         const llm = initializeLLM();
@@ -252,12 +237,9 @@ const insightGeneratorNode = async (state) => {
     }
 };
 
-// Node 8: Store & Expose (Non-AI)
 const storeOutputNode = async (state) => {
     try {
-        // 1. Store Incidents (deduplicating by title/date logic - simpler here just create)
         for (const item of state.locatedIncidents) {
-            // Check if exists to avoid dupes
             const existing = await Incident.findOne({ title: item.article.title });
             if (!existing) {
                 const newIncident = await Incident.create({
@@ -287,12 +269,7 @@ const storeOutputNode = async (state) => {
             }
         }
 
-        // 2. Store Matches
         for (const match of state.finalInsights) {
-            // We need the incident ID from previous step. 
-            // In a real refined flow, we'd map this better. 
-            // For now, re-find the incident logic or assume ordered array (risky).
-            // Let's find incident by title from the match object
             const inc = await Incident.findOne({ title: match.incident.article.title });
 
             if (inc) {
@@ -323,8 +300,6 @@ const storeOutputNode = async (state) => {
     }
 };
 
-
-// Helper: Haversine Distance
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371; // Radius of the earth in km
     const dLat = deg2rad(lat2 - lat1);
@@ -341,8 +316,6 @@ function deg2rad(deg) {
     return deg * (Math.PI / 180);
 }
 
-
-// --- Workflow Construction ---
 export const runNewsIntelligencePipeline = async () => {
     const workflow = new StateGraph({
         channels: {

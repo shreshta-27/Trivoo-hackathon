@@ -44,7 +44,7 @@ export default function Sidebar({ activePage = 'dashboard' }) {
             animate={{ x: 0 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
         >
-            {/* Logo */}
+            {}
             <motion.div
                 style={{
                     display: 'flex',
@@ -93,7 +93,7 @@ export default function Sidebar({ activePage = 'dashboard' }) {
                 </span>
             </motion.div>
 
-            {/* Navigation Items */}
+            {}
             <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                 {navItems.map((item, index) => {
                     const Icon = item.icon;
@@ -138,7 +138,7 @@ export default function Sidebar({ activePage = 'dashboard' }) {
                 })}
             </nav>
 
-            {/* User Section */}
+            {}
             <motion.div
                 style={{
                     padding: '1rem',

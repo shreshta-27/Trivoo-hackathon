@@ -20,9 +20,7 @@ export default function Incidents() {
     const [loading, setLoading] = useState(true);
     const canvasRef = useRef(null);
 
-    // Mock incidents data
     useEffect(() => {
-        // Simulate API call
         setTimeout(() => {
             setIncidents([
                 {
@@ -110,7 +108,6 @@ export default function Incidents() {
         }, 800);
     }, []);
 
-    // Three.js particle animation for background
     useEffect(() => {
         if (!canvasRef.current) return;
 
@@ -194,7 +191,7 @@ export default function Incidents() {
 
     return (
         <DashboardLayout activePage="incidents">
-            {/* Background Canvas */}
+            {}
             <canvas
                 ref={canvasRef}
                 style={{
@@ -210,7 +207,7 @@ export default function Incidents() {
             />
 
             <div style={{ maxWidth: '1400px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-                {/* Header */}
+                {}
                 <motion.div
                     style={{ marginBottom: '2.5rem' }}
                     initial={{ opacity: 0, y: -20 }}
@@ -251,7 +248,7 @@ export default function Incidents() {
                     </p>
                 </motion.div>
 
-                {/* Loading State */}
+                {}
                 {loading ? (
                     <motion.div
                         style={{ textAlign: 'center', padding: '4rem' }}
@@ -273,7 +270,7 @@ export default function Incidents() {
                         <p style={{ color: 'var(--text-secondary)' }}>Loading incidents...</p>
                     </motion.div>
                 ) : (
-                    /* Incidents Grid */
+                    
                     <div
                         style={{
                             display: 'grid',
@@ -311,7 +308,7 @@ export default function Incidents() {
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() => handleIncidentClick(incident.projectId)}
                                 >
-                                    {/* Critical Pulse Effect */}
+                                    {}
                                     {incident.severity === 'critical' && (
                                         <motion.div
                                             style={{
@@ -328,7 +325,7 @@ export default function Incidents() {
                                         />
                                     )}
 
-                                    {/* Header: Risk Type & Severity */}
+                                    {}
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                                         <div
                                             style={{
@@ -360,7 +357,7 @@ export default function Incidents() {
                                         </div>
                                     </div>
 
-                                    {/* Headline */}
+                                    {}
                                     <h3
                                         style={{
                                             fontSize: '1.125rem',
@@ -373,19 +370,19 @@ export default function Incidents() {
                                         {incident.headline}
                                     </h3>
 
-                                    {/* Location */}
+                                    {}
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
                                         <MapPin style={{ width: '14px', height: '14px', color: 'var(--emerald-green)' }} />
                                         <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{incident.location}</span>
                                     </div>
 
-                                    {/* Timestamp */}
+                                    {}
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                                         <Clock style={{ width: '14px', height: '14px', color: 'var(--text-muted)' }} />
                                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{incident.timestamp}</span>
                                     </div>
 
-                                    {/* Description Preview */}
+                                    {}
                                     <p
                                         style={{
                                             fontSize: '0.875rem',
@@ -397,7 +394,7 @@ export default function Incidents() {
                                         {incident.description.substring(0, 100)}...
                                     </p>
 
-                                    {/* View Details Link */}
+                                    {}
                                     <motion.div
                                         style={{
                                             display: 'flex',

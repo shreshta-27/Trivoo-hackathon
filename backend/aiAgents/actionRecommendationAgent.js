@@ -12,9 +12,9 @@ import { calculateProjectAge } from "../utils/lifecycleUtils.js";
 
 const initializeLLM = () => {
     return new ChatGoogleGenerativeAI({
-        modelName: process.env.AI_MODEL || "gemini-pro",
+        model: process.env.AI_MODEL || "gemini-pro",
         temperature: parseFloat(process.env.AI_TEMPERATURE) || 0.3,
-        apiKey: process.env.GOOGLE_API_KEY
+        apiKey: process.env.GEMINI_API_KEY
     });
 };
 

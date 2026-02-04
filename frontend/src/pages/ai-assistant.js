@@ -14,7 +14,6 @@ export default function AIAssistant() {
     const messagesEndRef = useRef(null);
     const canvasRef = useRef(null);
 
-    // Context-aware suggestions
     const suggestions = [
         "Why is this project at risk?",
         "What happens if I delay irrigation?",
@@ -24,7 +23,6 @@ export default function AIAssistant() {
         "What's the impact of deforestation nearby?",
     ];
 
-    // Initial welcome message
     useEffect(() => {
         setMessages([
             {
@@ -37,7 +35,6 @@ export default function AIAssistant() {
         ]);
     }, []);
 
-    // Three.js particle animation for background
     useEffect(() => {
         if (!canvasRef.current) return;
 
@@ -94,7 +91,6 @@ export default function AIAssistant() {
         };
     }, []);
 
-    // Auto-scroll to bottom
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isTyping]);
@@ -113,7 +109,6 @@ export default function AIAssistant() {
         setInputValue('');
         setIsTyping(true);
 
-        // Simulate AI response
         setTimeout(() => {
             const aiResponse = getAIResponse(question);
             setMessages((prev) => [...prev, aiResponse]);
@@ -171,7 +166,7 @@ export default function AIAssistant() {
 
     return (
         <DashboardLayout activePage="ai-assistant">
-            {/* Background Canvas */}
+            {}
             <canvas
                 ref={canvasRef}
                 style={{
@@ -187,7 +182,7 @@ export default function AIAssistant() {
             />
 
             <div style={{ maxWidth: '900px', margin: '0 auto', position: 'relative', zIndex: 1, height: 'calc(100vh - 60px)', display: 'flex', flexDirection: 'column', paddingBottom: '1rem' }}>
-                {/* Header */}
+                {}
                 <motion.div
                     style={{ marginBottom: '1rem', flexShrink: 0 }}
                     initial={{ opacity: 0, y: -20 }}
@@ -228,7 +223,7 @@ export default function AIAssistant() {
                     </p>
                 </motion.div>
 
-                {/* Suggestion Chips */}
+                {}
                 <motion.div
                     style={{
                         display: 'flex',
@@ -274,7 +269,7 @@ export default function AIAssistant() {
                     ))}
                 </motion.div>
 
-                {/* Chat Container */}
+                {}
                 <div
                     className="glass-card"
                     style={{
@@ -285,7 +280,7 @@ export default function AIAssistant() {
                         overflow: 'hidden',
                     }}
                 >
-                    {/* Messages */}
+                    {}
                     <div
                         style={{
                             flex: 1,
@@ -335,7 +330,7 @@ export default function AIAssistant() {
                             ))}
                         </AnimatePresence>
 
-                        {/* Typing Indicator */}
+                        {}
                         {isTyping && (
                             <motion.div
                                 style={{
@@ -382,7 +377,7 @@ export default function AIAssistant() {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Message Input */}
+                    {}
                     <div style={{ display: 'flex', gap: '0.75rem', flexShrink: 0 }}>
                         <input
                             type="text"
