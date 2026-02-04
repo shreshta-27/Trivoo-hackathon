@@ -1,6 +1,7 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import User from '../Models/userSchema.js';
+import { sendWelcomeEmail } from '../utils/emailService.js';
 
 export const configurePassport = () => {
     passport.use(new GoogleStrategy({
@@ -26,6 +27,7 @@ export const configurePassport = () => {
                         profession: 'manager',
                         role: 'manager'
                     });
+                    await sendWelcomeEmail(user.email, user.name);
                 } else if (!user.googleId) {
                     user.googleId = googleId;
                     user.avatar = user.avatar || avatar;

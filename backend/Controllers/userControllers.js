@@ -1,6 +1,7 @@
 import User from '../Models/userSchema.js';
 import jwt from 'jsonwebtoken';
 import { v2 as cloudinary } from 'cloudinary';
+import { sendWelcomeEmail } from '../utils/emailService.js';
 
 // Configure Cloudinary
 cloudinary.config({
@@ -37,6 +38,8 @@ export const registerUser = async (req, res) => {
         });
 
         if (user) {
+            await sendWelcomeEmail(user.email, user.name);
+
             res.status(201).json({
                 _id: user._id,
                 name: user.name,

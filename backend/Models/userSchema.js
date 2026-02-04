@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
     googleId: {
         type: String,
         default: '',
-        sparse: true // Allows multiple empty strings
+        sparse: true
     },
     avatar: {
         type: String,
