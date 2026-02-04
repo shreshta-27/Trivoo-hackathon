@@ -1,78 +1,161 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import { motion } from 'framer-motion';
+import dynamic from 'next/dynamic';
+import Layout from '../components/Layout';
+import StatCard from '../components/StatCard';
+import RegionTable from '../components/RegionTable';
+import RiskSignalCard from '../components/RiskSignalCard';
+import { Leaf, TreeDeciduous, AlertTriangle, Flame, Droplet, Users, Globe, ChevronDown } from 'lucide-react';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const AnimatedGlobe = dynamic(() => import('../components/AnimatedGlobe'), {
+  ssr: false,
+  loading: () => (
+    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="spinner"></div>
+    </div>
+  ),
 });
 
 export default function Home() {
   return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black`}
-    >
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the index.js file.
+    <Layout>
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+        {/* Header */}
+        <motion.div
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <h1 style={{
+            fontSize: '1.625rem',
+            fontWeight: '600',
+            color: '#ffffff',
+            letterSpacing: '0.01em'
+          }}>
+            Forest Health Overview
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          <motion.button
+            className="btn"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.625rem 1rem',
+              borderRadius: '8px',
+              background: 'linear-gradient(135deg, rgba(30, 42, 25, 0.7), rgba(20, 30, 18, 0.8))',
+              border: '1px solid rgba(100, 130, 80, 0.3)',
+              color: '#ffffff',
+              fontSize: '0.875rem',
+              fontWeight: '500'
+            }}
+            whileHover={{
+              borderColor: 'rgba(120, 150, 100, 0.5)',
+              background: 'linear-gradient(135deg, rgba(35, 48, 30, 0.8), rgba(25, 35, 23, 0.9))'
+            }}
+            whileTap={{ scale: 0.98 }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            <Globe style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
+            <span>Worldwide</span>
+            <ChevronDown style={{ width: '14px', height: '14px', color: '#9ca3af' }} />
+          </motion.button>
+        </motion.div>
+
+        {/* Main Content Grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '1.75rem',
+          marginBottom: '2rem'
+        }}>
+          {/* Left: Stats */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <StatCard icon={Leaf} label="Total Regions" value="5" type="default" />
+            <StatCard icon={TreeDeciduous} label="Total Projects" value="18" type="default" />
+            <StatCard icon={AlertTriangle} label="Projects at Risk" value="4" type="warning" />
+            <StatCard icon={Flame} label="Critical Alerts" value="2" type="danger" />
+          </div>
+
+          {/* Right: Globe */}
+          <motion.div
+            style={{
+              height: '380px',
+              borderRadius: '12px',
+              overflow: 'hidden'
+            }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <AnimatedGlobe />
+          </motion.div>
+        </div>
+
+        {/* Region Overview */}
+        <motion.div
+          style={{ marginBottom: '2rem' }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.4 }}
+        >
+          <h2 style={{
+            fontSize: '1.25rem',
+            fontWeight: '600',
+            color: '#ffffff',
+            marginBottom: '1rem',
+            letterSpacing: '0.01em'
+          }}>
+            Region Overview
+          </h2>
+          <RegionTable />
+        </motion.div>
+
+        {/* Active Risk Signals */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.4 }}
+        >
+          <h2 style={{
+            fontSize: '1.25rem',
+            fontWeight: '600',
+            color: '#ffffff',
+            marginBottom: '1rem',
+            letterSpacing: '0.01em'
+          }}>
+            Active Risk Signals
+          </h2>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '1rem'
+          }}>
+            <RiskSignalCard
+              icon={Flame}
+              title="Fire Risk"
+              severity="High"
+              location="Nashik Zone"
+              description="Below avg rainfall"
+              type="fire"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs/pages/getting-started?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            <RiskSignalCard
+              icon={Droplet}
+              title="Drought Stress"
+              severity=""
+              location="Pune"
+              description="Below avg rainfall"
+              type="drought"
+            />
+            <RiskSignalCard
+              icon={Users}
+              title="Human Activity"
+              severity=""
+              location="Nagpur Zone"
+              description="+2.1°C Temperature Anomaly"
+              type="human"
+            />
+          </div>
+        </motion.div>
+      </div>
+    </Layout>
   );
 }

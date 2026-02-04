@@ -1,0 +1,76 @@
+import { motion } from 'framer-motion';
+
+export default function FloatingLeaves() {
+    const leaves = [
+        { id: 1, left: '10%', delay: 0, duration: 20, size: 40 },
+        { id: 2, left: '25%', delay: 5, duration: 25, size: 30 },
+        { id: 3, left: '45%', delay: 10, duration: 22, size: 35 },
+        { id: 4, left: '65%', delay: 3, duration: 28, size: 25 },
+        { id: 5, left: '80%', delay: 8, duration: 24, size: 32 },
+        { id: 6, left: '15%', delay: 12, duration: 26, size: 28 },
+        { id: 7, left: '90%', delay: 6, duration: 23, size: 38 },
+    ];
+
+    return (
+        <div
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                pointerEvents: 'none',
+                zIndex: 1,
+                overflow: 'hidden',
+            }}
+        >
+            {leaves.map((leaf) => (
+                <motion.div
+                    key={leaf.id}
+                    style={{
+                        position: 'absolute',
+                        left: leaf.left,
+                        top: '-100px',
+                        width: `${leaf.size}px`,
+                        height: `${leaf.size}px`,
+                    }}
+                    animate={{
+                        y: ['0vh', '110vh'],
+                        x: [0, Math.sin(leaf.id) * 100, 0],
+                        rotate: [0, 360 * (leaf.id % 2 === 0 ? 1 : -1)],
+                        opacity: [0, 1, 1, 0],
+                    }}
+                    transition={{
+                        duration: leaf.duration,
+                        delay: leaf.delay,
+                        repeat: Infinity,
+                        ease: 'linear',
+                    }}
+                >
+                    <svg
+                        viewBox="0 0 100 100"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            filter: 'blur(0.5px)',
+                        }}
+                    >
+                        <path
+                            d="M50 10 Q 70 30, 70 50 Q 70 70, 50 90 Q 30 70, 30 50 Q 30 30, 50 10 Z"
+                            fill="#7BA882"
+                            opacity="0.3"
+                        />
+                        <path
+                            d="M50 10 Q 65 25, 65 50 Q 65 75, 50 90"
+                            stroke="#4CAF50"
+                            strokeWidth="2"
+                            opacity="0.4"
+                        />
+                    </svg>
+                </motion.div>
+            ))}
+        </div>
+    );
+}
