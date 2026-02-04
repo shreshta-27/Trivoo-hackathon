@@ -3,9 +3,9 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { FUTURE_RISK_SYSTEM_PROMPT, FUTURE_RISK_USER_PROMPT } from "./prompts/futureRiskPrompts.js";
 
 const llm = new ChatGoogleGenerativeAI({
-    modelName: process.env.AI_MODEL || "gemini-pro",
+    model: process.env.AI_MODEL || "gemini-pro",
     temperature: 0.2,
-    apiKey: process.env.GOOGLE_API_KEY
+    apiKey: process.env.GEMINI_API_KEY
 });
 
 export const forecastFutureRisk = async (project, trends, speciesData) => {

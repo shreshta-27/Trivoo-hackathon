@@ -3,9 +3,9 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { FUTURESCAPE_SYSTEM_PROMPT, FUTURESCAPE_USER_PROMPT } from "./prompts/futurescapePrompts.js";
 
 const llm = new ChatGoogleGenerativeAI({
-    modelName: process.env.AI_MODEL || "gemini-pro",
+    model: process.env.AI_MODEL || "gemini-pro",
     temperature: 0.4,
-    apiKey: process.env.GOOGLE_API_KEY
+    apiKey: process.env.GEMINI_API_KEY
 });
 
 export const compareScenarios = async (simulatedResults, years, location, speciesData) => {
