@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "bytez": "^0.7.0",
+    "bytez.js": "^3.0.0"
+  }
+}

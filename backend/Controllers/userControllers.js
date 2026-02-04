@@ -1,5 +1,13 @@
-import User from '../Models/user.js';
+import User from '../Models/userSchema.js';
 import jwt from 'jsonwebtoken';
+import { v2 as cloudinary } from 'cloudinary';
+
+// Configure Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -138,6 +146,91 @@ export const deleteUser = async (req, res) => {
         } else {
             res.status(404).json({ message: 'User not found' });
         }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Logout user (client-side token removal, optional server-side tracking)
+export const logoutUser = async (req, res) => {
+    try {
+        res.json({ message: 'User logged out successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Update profile image
+export const updateProfileImage = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const { avatar } = req.body;
+
+        if (!avatar) {
+            return res.status(400).json({ message: 'Please provide an image' });
+        }
+
+        // Delete old image from Cloudinary if exists
+        if (user.avatar && user.avatar.includes('cloudinary')) {
+            const publicId = user.avatar.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy(`trivo/avatars/${publicId}`);
+        }
+
+        // Upload new image to Cloudinary
+        const uploadResponse = await cloudinary.uploader.upload(avatar, {
+            folder: 'trivo/avatars',
+            width: 300,
+            height: 300,
+            crop: 'fill'
+        });
+
+        user.avatar = uploadResponse.secure_url;
+        await user.save();
+
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            avatar: user.avatar,
+            profession: user.profession,
+            message: 'Profile image updated successfully'
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Remove profile image
+export const removeProfileImage = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Delete image from Cloudinary if exists
+        if (user.avatar && user.avatar.includes('cloudinary')) {
+            const publicId = user.avatar.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy(`trivo/avatars/${publicId}`);
+        }
+
+        user.avatar = '';
+        await user.save();
+
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            avatar: user.avatar,
+            profession: user.profession,
+            message: 'Profile image removed successfully'
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
