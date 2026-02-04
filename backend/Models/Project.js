@@ -42,6 +42,11 @@ const projectSchema = new mongoose.Schema({
         max: 100,
         default: 75
     },
+    healthHistory: [{
+        score: Number,
+        recordedAt: { type: Date, default: Date.now }
+    }],
+    lastRiskAnalysis: { type: Date },
     riskLevel: {
         type: String,
         enum: ['stable', 'medium_stress', 'high_stress', 'critical_stress'],

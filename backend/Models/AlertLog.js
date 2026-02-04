@@ -6,12 +6,12 @@ const alertLogSchema = new mongoose.Schema({
     riskType: {
         type: String,
         required: true,
-        enum: ['health_critical', 'action_urgent', 'incident_high_risk']
+        enum: ['health_critical', 'action_urgent', 'incident_high_risk', 'future_forecast_risk']
     },
     severity: {
         type: String,
         required: true,
-        enum: ['high', 'critical']
+        enum: ['low', 'medium', 'high', 'critical']
     },
     emailContent: {
         subject: String,

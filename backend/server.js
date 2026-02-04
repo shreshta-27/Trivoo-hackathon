@@ -57,8 +57,22 @@ const io = new Server(httpServer, {
     }
 });
 
+import futureRiskRoutes from './Routes/futureRiskRoutes.js';
+import { runRiskForecastJob } from './Controllers/riskForecastController.js';
+
+// ... (previous code)
+
 plantingSocket(io);
 seedTreeData();
+
+// Scheduler: Run Risk Forecast everyday (86400000 ms)
+// For Hackathon demo: Run on startup then every hour
+setTimeout(() => {
+    runRiskForecastJob();
+}, 10000); // Run 10s after startup
+setInterval(() => {
+    runRiskForecastJob();
+}, 3600000); // 1 Hour
 
 app.use('/api/users', userRoutes);
 app.use("/api/auth", authRoutes);
@@ -71,6 +85,7 @@ app.use('/api/recommendations', actionRecommendationRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/crops', cropRoutes);
 app.use('/api/planting', plantingRoutes);
+app.use('/api/forecast', futureRiskRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/charts', chartRoutes);
 
