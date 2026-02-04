@@ -95,7 +95,6 @@ export default function LandingPage() {
                 position: 'relative',
                 zIndex: 2
             }}>
-                {/* Navigation */}
                 <nav style={{
                     background: 'var(--glass-dark)',
                     backdropFilter: 'blur(20px)',
@@ -114,7 +113,6 @@ export default function LandingPage() {
                         alignItems: 'center',
                         justifyContent: 'space-between'
                     }}>
-                        {/* Logo */}
                         <motion.div
                             style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
                             whileHover={{ scale: 1.05 }}
@@ -143,7 +141,6 @@ export default function LandingPage() {
                             }}>TRIVO</span>
                         </motion.div>
 
-                        {/* Menu */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '2.5rem' }}>
                             {['Dashboard', 'Reports', 'Community', 'Research'].map((item) => (
                                 <motion.button
@@ -224,9 +221,7 @@ export default function LandingPage() {
                     </div>
                 </nav>
 
-                {/* Main Content */}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    {/* Hero Section */}
                     <section style={{
                         maxWidth: '1400px',
                         margin: '0 auto',
@@ -239,7 +234,6 @@ export default function LandingPage() {
                             gap: '4rem',
                             alignItems: 'center'
                         }}>
-                            {/* Left Content */}
                             <div>
                                 <motion.h1
                                     style={{
@@ -332,7 +326,6 @@ export default function LandingPage() {
                                     </motion.button>
                                 </motion.div>
 
-                                {/* Quick Stats */}
                                 <motion.div
                                     style={{
                                         display: 'grid',
@@ -378,7 +371,6 @@ export default function LandingPage() {
                                 </motion.div>
                             </div>
 
-                            {/* Right: 3D Earth Globe */}
                             <motion.div
                                 style={{
                                     height: '600px',
@@ -395,7 +387,6 @@ export default function LandingPage() {
                                 transition={{ delay: 0.4, duration: 0.8 }}
                             >
                                 <RealisticEarth />
-                                {/* Glow effect overlay */}
                                 <div style={{
                                     position: 'absolute',
                                     top: 0,
@@ -409,7 +400,6 @@ export default function LandingPage() {
                         </div>
                     </section>
 
-                    {/* Animated Stats Section */}
                     <section style={{
                         maxWidth: '1400px',
                         margin: '0 auto',
@@ -441,7 +431,6 @@ export default function LandingPage() {
                         <AnimatedStats stats={statsData} />
                     </section>
 
-                    {/* Features Section */}
                     <section style={{
                         maxWidth: '1400px',
                         margin: '0 auto',
@@ -525,7 +514,6 @@ export default function LandingPage() {
                                             {feature.description}
                                         </p>
 
-                                        {/* Decorative corner accent */}
                                         <div style={{
                                             position: 'absolute',
                                             top: '20px',
@@ -543,7 +531,6 @@ export default function LandingPage() {
                     </section>
                 </div>
 
-                {/* Footer */}
                 <footer style={{
                     borderTop: '1px solid var(--glass-border)',
                     padding: '3rem 0',
@@ -559,7 +546,6 @@ export default function LandingPage() {
                         gridTemplateColumns: 'repeat(4, 1fr)',
                         gap: '3rem'
                     }}>
-                        {/* About */}
                         <div>
                             <h4 style={{
                                 fontSize: '1rem',
@@ -576,7 +562,6 @@ export default function LandingPage() {
                             </p>
                         </div>
 
-                        {/* Quick Links */}
                         <div>
                             <h4 style={{
                                 fontSize: '1rem',
@@ -601,7 +586,6 @@ export default function LandingPage() {
                             ))}
                         </div>
 
-                        {/* Contact */}
                         <div>
                             <h4 style={{
                                 fontSize: '1rem',
@@ -624,7 +608,6 @@ export default function LandingPage() {
                             </p>
                         </div>
 
-                        {/* Social */}
                         <div>
                             <h4 style={{
                                 fontSize: '1rem',
