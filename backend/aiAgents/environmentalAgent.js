@@ -1,25 +1,1 @@
-import { getEnvironmentalContext as getServiceContext } from "../utils/environmentalDataService.js";
-
-export const getEnvironmentalContext = async (lat, lon) => {
-    try {
-        console.log(`📡 EnvAgent: Fetching real data for [${lat}, ${lon}]`);
-
-        const data = await getServiceContext(lon, lat);
-
-        return {
-            rainfall_mm: data.climate.averageRainfall,
-            temp_min_c: data.climate.temperatureRange.min,
-            temp_max_c: data.climate.temperatureRange.max,
-            soil_type: data.soil?.type || "Loamy",
-            source: data.climate.isRealData ? "OpenWeatherMap API" : "Mock Data"
-        };
-    } catch (error) {
-        console.error("Env Agent Error:", error);
-        return {
-            rainfall_mm: 1200,
-            temp_min_c: 20,
-            temp_max_c: 35,
-            soil_type: "Loamy"
-        };
-    }
-};
+import { getEnvironmentalContext as getServiceContext } from "../utils/environmentalDataService.js";export const getEnvironmentalContext = async (lat, lon) => {    try {        console.log(`📡 EnvAgent: Fetching real data for [${lat}, ${lon}]`);        const data = await getServiceContext(lon, lat);        return {            rainfall_mm: data.climate.averageRainfall,            temp_min_c: data.climate.temperatureRange.min,            temp_max_c: data.climate.temperatureRange.max,            soil_type: data.soil?.type || "Loamy",            source: data.climate.isRealData ? "OpenWeatherMap API" : "Mock Data"        };    } catch (error) {        console.error("Env Agent Error:", error);        return {            rainfall_mm: 1200,            temp_min_c: 20,            temp_max_c: 35,            soil_type: "Loamy"        };    }};

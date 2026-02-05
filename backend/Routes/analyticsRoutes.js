@@ -1,23 +1,1 @@
-import express from 'express';
-import {
-    getProjectStatistics,
-    getUserDashboard,
-    getInsightAnalytics,
-    getMaintenanceAnalytics,
-    getSimulationHistory
-} from '../Controllers/analyticsController.js';
-import { generalRateLimiter } from '../Middlewares/rateLimitAI.js';
-
-const router = express.Router();
-
-router.get('/project/:projectId/statistics', generalRateLimiter, getProjectStatistics);
-
-router.get('/user/:userId/dashboard', generalRateLimiter, getUserDashboard);
-
-router.get('/user/:userId/insights', generalRateLimiter, getInsightAnalytics);
-
-router.get('/user/:userId/maintenance', generalRateLimiter, getMaintenanceAnalytics);
-
-router.get('/project/:projectId/simulations', generalRateLimiter, getSimulationHistory);
-
-export default router;
+import express from 'express';import {    getProjectStatistics,    getUserDashboard,    getInsightAnalytics,    getMaintenanceAnalytics,    getSimulationHistory} from '../Controllers/analyticsController.js';import { generalRateLimiter } from '../Middlewares/rateLimitAI.js';const router = express.Router();router.get('/project/:projectId/statistics', generalRateLimiter, getProjectStatistics);router.get('/user/:userId/dashboard', generalRateLimiter, getUserDashboard);router.get('/user/:userId/insights', generalRateLimiter, getInsightAnalytics);router.get('/user/:userId/maintenance', generalRateLimiter, getMaintenanceAnalytics);router.get('/project/:projectId/simulations', generalRateLimiter, getSimulationHistory);export default router;

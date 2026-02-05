@@ -1,187 +1,1 @@
-export const calculateHealthScoreChange = (previousScore, currentScore) => {
-    const change = currentScore - previousScore;
-    const percentageChange = ((change / previousScore) * 100).toFixed(1);
-
-    return {
-        change,
-        percentageChange,
-        trend: change > 0 ? 'improving' : change < 0 ? 'declining' : 'stable',
-        severity: Math.abs(change) > 10 ? 'significant' : Math.abs(change) > 5 ? 'moderate' : 'minor'
-    };
-};
-
-export const calculateMaintenanceImpact = (actionType) => {
-    const impacts = {
-        watering: { healthBoost: 2, duration: 7 },
-        fertilization: { healthBoost: 3, duration: 30 },
-        pruning: { healthBoost: 1, duration: 14 },
-        pest_control: { healthBoost: 5, duration: 21 },
-        health_check: { healthBoost: 0, duration: 0 }
-    };
-
-    return impacts[actionType] || { healthBoost: 0, duration: 0 };
-};
-
-export const determineActionUrgency = (healthScore, activeRisks) => {
-    if (healthScore < 25 || activeRisks.some(r => r.severity === 'critical')) {
-        return 'critical';
-    }
-    if (healthScore < 50 || activeRisks.some(r => r.severity === 'high')) {
-        return 'high';
-    }
-    if (healthScore < 75 || activeRisks.some(r => r.severity === 'medium')) {
-        return 'medium';
-    }
-    return 'low';
-};
-
-export const calculateProjectAge = (plantedDate) => {
-    const now = new Date();
-    const planted = new Date(plantedDate);
-    const ageInDays = Math.floor((now - planted) / (1000 * 60 * 60 * 24));
-    const ageInMonths = Math.floor(ageInDays / 30);
-    const ageInYears = Math.floor(ageInMonths / 12);
-
-    return {
-        days: ageInDays,
-        months: ageInMonths,
-        years: ageInYears,
-        displayAge: ageInYears > 0
-            ? `${ageInYears} year${ageInYears > 1 ? 's' : ''}`
-            : ageInMonths > 0
-                ? `${ageInMonths} month${ageInMonths > 1 ? 's' : ''}`
-                : `${ageInDays} day${ageInDays > 1 ? 's' : ''}`
-    };
-};
-
-export const getProjectMaturityStage = (ageInMonths, treeType) => {
-    const stages = {
-        Teak: [
-            { stage: 'seedling', maxMonths: 6 },
-            { stage: 'sapling', maxMonths: 24 },
-            { stage: 'young', maxMonths: 60 },
-            { stage: 'mature', maxMonths: 120 },
-            { stage: 'old_growth', maxMonths: Infinity }
-        ],
-        Mango: [
-            { stage: 'seedling', maxMonths: 3 },
-            { stage: 'sapling', maxMonths: 12 },
-            { stage: 'young', maxMonths: 36 },
-            { stage: 'mature', maxMonths: 72 },
-            { stage: 'old_growth', maxMonths: Infinity }
-        ],
-        Neem: [
-            { stage: 'seedling', maxMonths: 4 },
-            { stage: 'sapling', maxMonths: 18 },
-            { stage: 'young', maxMonths: 48 },
-            { stage: 'mature', maxMonths: 96 },
-            { stage: 'old_growth', maxMonths: Infinity }
-        ],
-        default: [
-            { stage: 'seedling', maxMonths: 6 },
-            { stage: 'sapling', maxMonths: 18 },
-            { stage: 'young', maxMonths: 48 },
-            { stage: 'mature', maxMonths: 96 },
-            { stage: 'old_growth', maxMonths: Infinity }
-        ]
-    };
-
-    const treeStages = stages[treeType] || stages.default;
-
-    for (const { stage, maxMonths } of treeStages) {
-        if (ageInMonths <= maxMonths) {
-            return stage;
-        }
-    }
-
-    return 'old_growth';
-};
-
-export const calculateExpectedMaturityDate = (plantedDate, treeType) => {
-    const maturityMonths = {
-        Teak: 120,
-        Mango: 72,
-        Neem: 96,
-        Bamboo: 36,
-        Eucalyptus: 60,
-        default: 84
-    };
-
-    const months = maturityMonths[treeType] || maturityMonths.default;
-    const planted = new Date(plantedDate);
-    const maturityDate = new Date(planted);
-    maturityDate.setMonth(maturityDate.getMonth() + months);
-
-    return maturityDate;
-};
-
-export const generateHealthSummary = (healthHistory) => {
-    if (!healthHistory || healthHistory.length === 0) {
-        return {
-            average: 0,
-            trend: 'unknown',
-            volatility: 0,
-            lowestScore: 0,
-            highestScore: 0
-        };
-    }
-
-    const scores = healthHistory.map(h => h.score);
-    const average = scores.reduce((a, b) => a + b, 0) / scores.length;
-    const lowestScore = Math.min(...scores);
-    const highestScore = Math.max(...scores);
-
-    const recentScores = scores.slice(-5);
-    const trend = recentScores.length >= 2
-        ? recentScores[recentScores.length - 1] > recentScores[0] ? 'improving' : 'declining'
-        : 'stable';
-
-    const variance = scores.reduce((sum, score) => sum + Math.pow(score - average, 2), 0) / scores.length;
-    const volatility = Math.sqrt(variance);
-
-    return {
-        average: Math.round(average),
-        trend,
-        volatility: Math.round(volatility),
-        lowestScore,
-        highestScore,
-        recordCount: healthHistory.length
-    };
-};
-
-export const predictNextMaintenanceDate = (lastMaintenanceDate, actionType) => {
-    if (!lastMaintenanceDate) return null;
-
-    const intervals = {
-        watering: 3,
-        fertilization: 30,
-        pruning: 60,
-        pest_control: 45,
-        health_check: 14
-    };
-
-    const days = intervals[actionType] || 7;
-    const nextDate = new Date(lastMaintenanceDate);
-    nextDate.setDate(nextDate.getDate() + days);
-
-    return nextDate;
-};
-
-export const isMaintenanceOverdue = (lastMaintenanceDate, actionType) => {
-    const nextDate = predictNextMaintenanceDate(lastMaintenanceDate, actionType);
-    if (!nextDate) return false;
-
-    return new Date() > nextDate;
-};
-
-export default {
-    calculateHealthScoreChange,
-    calculateMaintenanceImpact,
-    determineActionUrgency,
-    calculateProjectAge,
-    getProjectMaturityStage,
-    calculateExpectedMaturityDate,
-    generateHealthSummary,
-    predictNextMaintenanceDate,
-    isMaintenanceOverdue
-};
+export const calculateHealthScoreChange = (previousScore, currentScore) => {    const change = currentScore - previousScore;    const percentageChange = ((change / previousScore) * 100).toFixed(1);    return {        change,        percentageChange,        trend: change > 0 ? 'improving' : change < 0 ? 'declining' : 'stable',        severity: Math.abs(change) > 10 ? 'significant' : Math.abs(change) > 5 ? 'moderate' : 'minor'    };};export const calculateMaintenanceImpact = (actionType) => {    const impacts = {        watering: { healthBoost: 2, duration: 7 },        fertilization: { healthBoost: 3, duration: 30 },        pruning: { healthBoost: 1, duration: 14 },        pest_control: { healthBoost: 5, duration: 21 },        health_check: { healthBoost: 0, duration: 0 }    };    return impacts[actionType] || { healthBoost: 0, duration: 0 };};export const determineActionUrgency = (healthScore, activeRisks) => {    if (healthScore < 25 || activeRisks.some(r => r.severity === 'critical')) {        return 'critical';    }    if (healthScore < 50 || activeRisks.some(r => r.severity === 'high')) {        return 'high';    }    if (healthScore < 75 || activeRisks.some(r => r.severity === 'medium')) {        return 'medium';    }    return 'low';};export const calculateProjectAge = (plantedDate) => {    const now = new Date();    const planted = new Date(plantedDate);    const ageInDays = Math.floor((now - planted) / (1000 * 60 * 60 * 24));    const ageInMonths = Math.floor(ageInDays / 30);    const ageInYears = Math.floor(ageInMonths / 12);    return {        days: ageInDays,        months: ageInMonths,        years: ageInYears,        displayAge: ageInYears > 0            ? `${ageInYears} year${ageInYears > 1 ? 's' : ''}`            : ageInMonths > 0                ? `${ageInMonths} month${ageInMonths > 1 ? 's' : ''}`                : `${ageInDays} day${ageInDays > 1 ? 's' : ''}`    };};export const getProjectMaturityStage = (ageInMonths, treeType) => {    const stages = {        Teak: [            { stage: 'seedling', maxMonths: 6 },            { stage: 'sapling', maxMonths: 24 },            { stage: 'young', maxMonths: 60 },            { stage: 'mature', maxMonths: 120 },            { stage: 'old_growth', maxMonths: Infinity }        ],        Mango: [            { stage: 'seedling', maxMonths: 3 },            { stage: 'sapling', maxMonths: 12 },            { stage: 'young', maxMonths: 36 },            { stage: 'mature', maxMonths: 72 },            { stage: 'old_growth', maxMonths: Infinity }        ],        Neem: [            { stage: 'seedling', maxMonths: 4 },            { stage: 'sapling', maxMonths: 18 },            { stage: 'young', maxMonths: 48 },            { stage: 'mature', maxMonths: 96 },            { stage: 'old_growth', maxMonths: Infinity }        ],        default: [            { stage: 'seedling', maxMonths: 6 },            { stage: 'sapling', maxMonths: 18 },            { stage: 'young', maxMonths: 48 },            { stage: 'mature', maxMonths: 96 },            { stage: 'old_growth', maxMonths: Infinity }        ]    };    const treeStages = stages[treeType] || stages.default;    for (const { stage, maxMonths } of treeStages) {        if (ageInMonths <= maxMonths) {            return stage;        }    }    return 'old_growth';};export const calculateExpectedMaturityDate = (plantedDate, treeType) => {    const maturityMonths = {        Teak: 120,        Mango: 72,        Neem: 96,        Bamboo: 36,        Eucalyptus: 60,        default: 84    };    const months = maturityMonths[treeType] || maturityMonths.default;    const planted = new Date(plantedDate);    const maturityDate = new Date(planted);    maturityDate.setMonth(maturityDate.getMonth() + months);    return maturityDate;};export const generateHealthSummary = (healthHistory) => {    if (!healthHistory || healthHistory.length === 0) {        return {            average: 0,            trend: 'unknown',            volatility: 0,            lowestScore: 0,            highestScore: 0        };    }    const scores = healthHistory.map(h => h.score);    const average = scores.reduce((a, b) => a + b, 0) / scores.length;    const lowestScore = Math.min(...scores);    const highestScore = Math.max(...scores);    const recentScores = scores.slice(-5);    const trend = recentScores.length >= 2        ? recentScores[recentScores.length - 1] > recentScores[0] ? 'improving' : 'declining'        : 'stable';    const variance = scores.reduce((sum, score) => sum + Math.pow(score - average, 2), 0) / scores.length;    const volatility = Math.sqrt(variance);    return {        average: Math.round(average),        trend,        volatility: Math.round(volatility),        lowestScore,        highestScore,        recordCount: healthHistory.length    };};export const predictNextMaintenanceDate = (lastMaintenanceDate, actionType) => {    if (!lastMaintenanceDate) return null;    const intervals = {        watering: 3,        fertilization: 30,        pruning: 60,        pest_control: 45,        health_check: 14    };    const days = intervals[actionType] || 7;    const nextDate = new Date(lastMaintenanceDate);    nextDate.setDate(nextDate.getDate() + days);    return nextDate;};export const isMaintenanceOverdue = (lastMaintenanceDate, actionType) => {    const nextDate = predictNextMaintenanceDate(lastMaintenanceDate, actionType);    if (!nextDate) return false;    return new Date() > nextDate;};export default {    calculateHealthScoreChange,    calculateMaintenanceImpact,    determineActionUrgency,    calculateProjectAge,    getProjectMaturityStage,    calculateExpectedMaturityDate,    generateHealthSummary,    predictNextMaintenanceDate,    isMaintenanceOverdue};

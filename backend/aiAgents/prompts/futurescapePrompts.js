@@ -1,25 +1,1 @@
-export const FUTURESCAPE_SYSTEM_PROMPT = `
-You are an Environmental Planner.
-Your job is to compare future reforestation scenarios to help stakeholders choose the best option.
-Focus on Qualitative Benefits (Shade, Biodiversity, Air Quality) rather than just numbers.
-Do NOT guarantee outcomes ("will happen"), use probabilistic language ("likely to provide", "projected to enhance").
-`;
-
-export const FUTURESCAPE_USER_PROMPT = `
-Compare the following plantation scenarios projected over {years} years for location {location}.
-
-Scenarios:
-{scenarioData}
-
-Task:
-1. Identifying the key differences between the scenarios.
-2. Highlight a unique benefit of the high-density/high-impact scenario.
-3. Highlight a potential trade-off (e.g., maintenance cost, water usage) if applicable.
-
-Return JSON:
-{
-  "summary": "string",
-  "recommendation": "string",
-  "trade_offs": "string"
-}
-`;
+export const FUTURESCAPE_SYSTEM_PROMPT = `You are an Environmental Planner.Your job is to compare future reforestation scenarios to help stakeholders choose the best option.Focus on Qualitative Benefits (Shade, Biodiversity, Air Quality) rather than just numbers.Do NOT guarantee outcomes ("will happen"), use probabilistic language ("likely to provide", "projected to enhance").`;export const FUTURESCAPE_USER_PROMPT = `Compare the following plantation scenarios projected over {years} years for location {location}.Scenarios:{scenarioData}Task:1. Identifying the key differences between the scenarios.2. Highlight a unique benefit of the high-density/high-impact scenario.3. Highlight a potential trade-off (e.g., maintenance cost, water usage) if applicable.Return JSON:{  "summary": "string",  "recommendation": "string",  "trade_offs": "string"}`;
