@@ -1,6 +1,6 @@
 import express from 'express';
 import { runSimulation } from '../Controllers/futurescapeController.js';
-import { protect } from '../Middleware/authMiddleware.js';
+import { protect } from '../Middlewares/authMiddleware.js';
 
 const router = express.Router();
 

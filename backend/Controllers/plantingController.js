@@ -1,57 +1,1 @@
-import PlantingSession from '../Models/PlantingSession.js';
-import TreeSpecies from '../Models/TreeSpecies.js';
-
-export const createSession = async (req, res) => {
-    try {
-        const { targetTrees, species, location } = req.body;
-        const session = await PlantingSession.create({
-            organizer: req.user._id,
-            targetTrees,
-            species,
-            location: { type: 'Point', coordinates: location }
-        });
-        res.status(201).json(session);
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
-
-export const getNearSessions = async (req, res) => {
-    try {
-        const { lat, lon, dist = 50 } = req.query;
-        const sessions = await PlantingSession.find({
-            location: {
-                $near: {
-                    $geometry: { type: 'Point', coordinates: [parseFloat(lon), parseFloat(lat)] },
-                    $maxDistance: dist * 1000
-                }
-            },
-            status: { $ne: 'completed' }
-        }).populate('organizer', 'name');
-        res.json(sessions);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-export const joinSession = async (req, res) => {
-    try {
-        const session = await PlantingSession.findByIdAndUpdate(
-            req.params.id,
-            { $addToSet: { participants: { user: req.user._id } } },
-            { new: true }
-        );
-        res.json(session);
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
-
-export const getSpeciesList = async (req, res) => {
-    try {
-        const species = await TreeSpecies.find();
-        res.json(species);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
+import PlantingSession from '../Models/PlantingSession.js';import TreeSpecies from '../Models/TreeSpecies.js';export const createSession = async (req, res) => {    try {        const { targetTrees, species, location } = req.body;        const session = await PlantingSession.create({            organizer: req.user._id,            targetTrees,            species,            location: { type: 'Point', coordinates: location }        });        res.status(201).json(session);    } catch (error) {        res.status(400).json({ message: error.message });    }};export const getNearSessions = async (req, res) => {    try {        const { lat, lon, dist = 50 } = req.query;        const sessions = await PlantingSession.find({            location: {                $near: {                    $geometry: { type: 'Point', coordinates: [parseFloat(lon), parseFloat(lat)] },                    $maxDistance: dist * 1000                }            },            status: { $ne: 'completed' }        }).populate('organizer', 'name');        res.json(sessions);    } catch (error) {        res.status(500).json({ message: error.message });    }};export const joinSession = async (req, res) => {    try {        const session = await PlantingSession.findByIdAndUpdate(            req.params.id,            { $addToSet: { participants: { user: req.user._id } } },            { new: true }        );        res.json(session);    } catch (error) {        res.status(400).json({ message: error.message });    }};export const getSpeciesList = async (req, res) => {    try {        const species = await TreeSpecies.find();        res.json(species);    } catch (error) {        res.status(500).json({ message: error.message });    }};

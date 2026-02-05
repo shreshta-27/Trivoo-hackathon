@@ -1,161 +1,1 @@
-import { motion, useInView, useMotionValue, useSpring } from 'framer-motion';
-import { useEffect, useRef } from 'react';
-
-function AnimatedNumber({ value, duration = 2 }) {
-    const ref = useRef(null);
-    const motionValue = useMotionValue(0);
-    const springValue = useSpring(motionValue, { duration: duration * 1000 });
-    const isInView = useInView(ref, { once: true, margin: "-100px" });
-
-    useEffect(() => {
-        if (isInView) {
-            motionValue.set(value);
-        }
-    }, [isInView, motionValue, value]);
-
-    useEffect(() => {
-        springValue.on("change", (latest) => {
-            if (ref.current) {
-                ref.current.textContent = Math.floor(latest).toLocaleString();
-            }
-        });
-    }, [springValue]);
-
-    return <span ref={ref}>0</span>;
-}
-
-export default function AnimatedStats({ stats }) {
-    return (
-        <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '1.5rem',
-            width: '100%'
-        }}>
-            {stats.map((stat, index) => {
-                const Icon = stat.icon;
-                return (
-                    <motion.div
-                        key={stat.label}
-                        className="glass-card"
-                        style={{
-                            padding: '2rem',
-                            position: 'relative',
-                            overflow: 'visible'
-                        }}
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-50px" }}
-                        transition={{ delay: index * 0.1, duration: 0.6 }}
-                        whileHover={{ scale: 1.05 }}
-                    >
-                        {/* Animated Icon */}
-                        <motion.div
-                            style={{
-                                width: '60px',
-                                height: '60px',
-                                borderRadius: '16px',
-                                background: 'linear-gradient(135deg, var(--emerald-green), var(--bright-green))',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                marginBottom: '1.5rem',
-                                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)'
-                            }}
-                            whileHover={{ rotate: 360, scale: 1.1 }}
-                            transition={{ duration: 0.6 }}
-                        >
-                            <Icon style={{ width: '30px', height: '30px', color: '#ffffff' }} />
-                        </motion.div>
-
-                        {/* Label */}
-                        <p style={{
-                            fontSize: '0.875rem',
-                            color: 'var(--text-secondary)',
-                            marginBottom: '0.5rem',
-                            fontWeight: '500',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em'
-                        }}>
-                            {stat.label}
-                        </p>
-
-                        {/* Animated Number */}
-                        <div style={{
-                            fontSize: '2.5rem',
-                            fontWeight: '700',
-                            background: 'linear-gradient(135deg, var(--emerald-green), var(--purple-accent))',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            backgroundClip: 'text',
-                            marginBottom: '0.5rem'
-                        }}>
-                            {stat.prefix}
-                            <AnimatedNumber value={stat.value} />
-                            {stat.suffix}
-                        </div>
-
-                        {/* Description */}
-                        <p style={{
-                            fontSize: '0.875rem',
-                            color: 'var(--text-muted)',
-                            lineHeight: '1.5'
-                        }}>
-                            {stat.description}
-                        </p>
-
-                        {/* Progress Bar (if percentage) */}
-                        {stat.percentage && (
-                            <motion.div
-                                style={{
-                                    width: '100%',
-                                    height: '6px',
-                                    background: 'rgba(16, 185, 129, 0.1)',
-                                    borderRadius: '3px',
-                                    marginTop: '1rem',
-                                    overflow: 'hidden'
-                                }}
-                            >
-                                <motion.div
-                                    style={{
-                                        height: '100%',
-                                        background: 'linear-gradient(90deg, var(--emerald-green), var(--bright-green))',
-                                        borderRadius: '3px',
-                                        boxShadow: '0 0 10px rgba(16, 185, 129, 0.5)'
-                                    }}
-                                    initial={{ width: 0 }}
-                                    whileInView={{ width: `${stat.percentage}%` }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: index * 0.1 + 0.5, duration: 1, ease: "easeOut" }}
-                                />
-                            </motion.div>
-                        )}
-
-                        {/* Floating Particles */}
-                        <motion.div
-                            style={{
-                                position: 'absolute',
-                                top: '20px',
-                                right: '20px',
-                                width: '8px',
-                                height: '8px',
-                                borderRadius: '50%',
-                                background: 'var(--emerald-green)',
-                                boxShadow: '0 0 20px rgba(16, 185, 129, 0.6)'
-                            }}
-                            animate={{
-                                y: [-10, 10, -10],
-                                opacity: [0.5, 1, 0.5]
-                            }}
-                            transition={{
-                                duration: 3,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                            }}
-                        />
-                    </motion.div>
-                );
-            })}
-        </div>
-    );
-}
+import { motion, useInView, useMotionValue, useSpring } from 'framer-motion';import { useEffect, useRef } from 'react';function AnimatedNumber({ value, duration = 2 }) {    const ref = useRef(null);    const motionValue = useMotionValue(0);    const springValue = useSpring(motionValue, { duration: duration * 1000 });    const isInView = useInView(ref, { once: true, margin: "-100px" });    useEffect(() => {        if (isInView) {            motionValue.set(value);        }    }, [isInView, motionValue, value]);    useEffect(() => {        springValue.on("change", (latest) => {            if (ref.current) {                ref.current.textContent = Math.floor(latest).toLocaleString();            }        });    }, [springValue]);    return <span ref={ref}>0</span>;}export default function AnimatedStats({ stats }) {    return (        <div style={{            display: 'grid',            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',            gap: '1.5rem',            width: '100%'        }}>            {stats.map((stat, index) => {                const Icon = stat.icon;                return (                    <motion.div                        key={stat.label}                        className="glass-card"                        style={{                            padding: '2rem',                            position: 'relative',                            overflow: 'visible'                        }}                        initial={{ opacity: 0, y: 30 }}                        whileInView={{ opacity: 1, y: 0 }}                        viewport={{ once: true, margin: "-50px" }}                        transition={{ delay: index * 0.1, duration: 0.6 }}                        whileHover={{ scale: 1.05 }}                    >                        {}                        <motion.div                            style={{                                width: '60px',                                height: '60px',                                borderRadius: '16px',                                background: 'linear-gradient(135deg, var(--emerald-green), var(--bright-green))',                                display: 'flex',                                alignItems: 'center',                                justifyContent: 'center',                                marginBottom: '1.5rem',                                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)'                            }}                            whileHover={{ rotate: 360, scale: 1.1 }}                            transition={{ duration: 0.6 }}                        >                            <Icon style={{ width: '30px', height: '30px', color: '#ffffff' }} />                        </motion.div>                        {}                        <p style={{                            fontSize: '0.875rem',                            color: 'var(--text-secondary)',                            marginBottom: '0.5rem',                            fontWeight: '500',                            textTransform: 'uppercase',                            letterSpacing: '0.05em'                        }}>                            {stat.label}                        </p>                        {}                        <div style={{                            fontSize: '2.5rem',                            fontWeight: '700',                            background: 'linear-gradient(135deg, var(--emerald-green), var(--purple-accent))',                            WebkitBackgroundClip: 'text',                            WebkitTextFillColor: 'transparent',                            backgroundClip: 'text',                            marginBottom: '0.5rem'                        }}>                            {stat.prefix}                            <AnimatedNumber value={stat.value} />                            {stat.suffix}                        </div>                        {}                        <p style={{                            fontSize: '0.875rem',                            color: 'var(--text-muted)',                            lineHeight: '1.5'                        }}>                            {stat.description}                        </p>                        {}                        {stat.percentage && (                            <motion.div                                style={{                                    width: '100%',                                    height: '6px',                                    background: 'rgba(16, 185, 129, 0.1)',                                    borderRadius: '3px',                                    marginTop: '1rem',                                    overflow: 'hidden'                                }}                            >                                <motion.div                                    style={{                                        height: '100%',                                        background: 'linear-gradient(90deg, var(--emerald-green), var(--bright-green))',                                        borderRadius: '3px',                                        boxShadow: '0 0 10px rgba(16, 185, 129, 0.5)'                                    }}                                    initial={{ width: 0 }}                                    whileInView={{ width: `${stat.percentage}%` }}                                    viewport={{ once: true }}                                    transition={{ delay: index * 0.1 + 0.5, duration: 1, ease: "easeOut" }}                                />                            </motion.div>                        )}                        {}                        <motion.div                            style={{                                position: 'absolute',                                top: '20px',                                right: '20px',                                width: '8px',                                height: '8px',                                borderRadius: '50%',                                background: 'var(--emerald-green)',                                boxShadow: '0 0 20px rgba(16, 185, 129, 0.6)'                            }}                            animate={{                                y: [-10, 10, -10],                                opacity: [0.5, 1, 0.5]                            }}                            transition={{                                duration: 3,                                repeat: Infinity,                                ease: "easeInOut"                            }}                        />                    </motion.div>                );            })}        </div>    );}

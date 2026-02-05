@@ -1,102 +1,1 @@
-import mongoose from 'mongoose';
-
-const regionSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: [true, 'Region name is required'],
-        unique: true,
-        trim: true
-    },
-    coordinates: {
-        type: {
-            type: String,
-            enum: ['Polygon'],
-            required: true
-        },
-        coordinates: {
-            type: [[[Number]]],
-            required: true
-        }
-    },
-    projects: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Project'
-    }],
-    riskLevel: {
-        type: String,
-        enum: ['stable', 'medium_stress', 'high_stress', 'critical_stress'],
-        default: 'stable'
-    },
-    activeRisks: [{
-        type: {
-            type: String,
-            enum: ['drought', 'fire', 'water_stress', 'pest', 'disease', 'soil_degradation']
-        },
-        severity: {
-            type: String,
-            enum: ['low', 'medium', 'high', 'critical']
-        },
-        detectedAt: {
-            type: Date,
-            default: Date.now
-        }
-    }],
-    metadata: {
-        totalArea: Number,
-        averageRainfall: Number,
-        climateZone: String
-    }
-}, {
-    timestamps: true
-});
-
-regionSchema.index({ coordinates: '2dsphere' });
-
-regionSchema.methods.calculateRegionRisk = async function () {
-    await this.populate('projects');
-
-    if (!this.projects || this.projects.length === 0) {
-        this.riskLevel = 'stable';
-        return this.riskLevel;
-    }
-
-    const riskPriority = {
-        'critical_stress': 4,
-        'high_stress': 3,
-        'medium_stress': 2,
-        'stable': 1
-    };
-
-    let highestRisk = 'stable';
-    let highestPriority = 0;
-
-    for (const project of this.projects) {
-        const projectRisk = project.riskLevel || 'stable';
-        const priority = riskPriority[projectRisk] || 0;
-
-        if (priority > highestPriority) {
-            highestPriority = priority;
-            highestRisk = projectRisk;
-        }
-    }
-
-    this.riskLevel = highestRisk;
-    return this.riskLevel;
-};
-
-regionSchema.statics.getAllWithRiskData = async function () {
-    const regions = await this.find().populate('projects');
-
-    const regionsWithRisk = await Promise.all(
-        regions.map(async (region) => {
-            await region.calculateRegionRisk();
-            return region;
-        })
-    );
-
-    return regionsWithRisk;
-};
-
-const Region = mongoose.model('Region', regionSchema);
-
-export default Region;
+import mongoose from 'mongoose';const regionSchema = new mongoose.Schema({    name: {        type: String,        required: [true, 'Region name is required'],        unique: true,        trim: true    },    coordinates: {        type: {            type: String,            enum: ['Polygon'],            required: true        },        coordinates: {            type: [[[Number]]],            required: true        }    },    projects: [{        type: mongoose.Schema.Types.ObjectId,        ref: 'Project'    }],    riskLevel: {        type: String,        enum: ['stable', 'medium_stress', 'high_stress', 'critical_stress'],        default: 'stable'    },    activeRisks: [{        type: {            type: String,            enum: ['drought', 'fire', 'water_stress', 'pest', 'disease', 'soil_degradation']        },        severity: {            type: String,            enum: ['low', 'medium', 'high', 'critical']        },        detectedAt: {            type: Date,            default: Date.now        }    }],    metadata: {        totalArea: Number,        averageRainfall: Number,        climateZone: String    }}, {    timestamps: true});regionSchema.index({ coordinates: '2dsphere' });regionSchema.methods.calculateRegionRisk = async function () {    await this.populate('projects');    if (!this.projects || this.projects.length === 0) {        this.riskLevel = 'stable';        return this.riskLevel;    }    const riskPriority = {        'critical_stress': 4,        'high_stress': 3,        'medium_stress': 2,        'stable': 1    };    let highestRisk = 'stable';    let highestPriority = 0;    for (const project of this.projects) {        const projectRisk = project.riskLevel || 'stable';        const priority = riskPriority[projectRisk] || 0;        if (priority > highestPriority) {            highestPriority = priority;            highestRisk = projectRisk;        }    }    this.riskLevel = highestRisk;    return this.riskLevel;};regionSchema.statics.getAllWithRiskData = async function () {    const regions = await this.find().populate('projects');    const regionsWithRisk = await Promise.all(        regions.map(async (region) => {            await region.calculateRegionRisk();            return region;        })    );    return regionsWithRisk;};const Region = mongoose.model('Region', regionSchema);export default Region;

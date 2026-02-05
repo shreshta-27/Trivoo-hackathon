@@ -1,466 +1,1 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { motion } from 'framer-motion';
-import DashboardLayout from '../components/DashboardLayout';
-import {
-    ArrowLeft,
-    MapPin,
-    TreePine,
-    Calendar,
-    TrendingUp,
-    AlertTriangle,
-    CheckCircle,
-    Activity,
-    Lightbulb,
-    Sparkles,
-} from 'lucide-react';
-
-export default function ProjectDetail() {
-    const router = useRouter();
-    const { id } = router.query;
-    const [project, setProject] = useState(null);
-
-    // Format date consistently to avoid hydration errors
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        const month = date.getMonth() + 1;
-        const day = date.getDate();
-        const year = date.getFullYear();
-        return `${month}/${day}/${year}`;
-    };
-
-    useEffect(() => {
-        if (id) {
-            // Simulate fetching project data
-            const projectData = {
-                id: parseInt(id),
-                name: 'Amazon Reforestation Initiative',
-                region: 'Amazon Rainforest',
-                treesPlanted: 15000,
-                health: 'healthy',
-                healthScore: 92,
-                plantationDate: '2024-01-15',
-                description: 'Large-scale reforestation project focused on restoring biodiversity in the Amazon rainforest.',
-                healthTimeline: [
-                    { date: '2024-01', score: 75 },
-                    { date: '2024-02', score: 80 },
-                    { date: '2024-03', score: 85 },
-                    { date: '2024-04', score: 88 },
-                    { date: '2024-05', score: 92 },
-                ],
-                risks: [
-                    {
-                        id: 1,
-                        title: 'Deforestation in nearby area',
-                        severity: 'high',
-                        description: 'Increased logging activity detected 5km from project site',
-                        date: '2024-05-10',
-                    },
-                    {
-                        id: 2,
-                        title: 'Soil moisture below optimal',
-                        severity: 'medium',
-                        description: 'Recent dry spell affecting soil conditions',
-                        date: '2024-05-15',
-                    },
-                ],
-                aiInsight:
-                    'Based on current growth patterns and environmental conditions, your project is performing exceptionally well. The species diversity is optimal, and soil health indicators show strong improvement. Continue current maintenance schedule.',
-                recommendedActions: [
-                    {
-                        id: 1,
-                        title: 'Increase irrigation in sector 3',
-                        priority: 'high',
-                        impact: 'Improve survival rate by 15%',
-                    },
-                    {
-                        id: 2,
-                        title: 'Plant native ground cover',
-                        priority: 'medium',
-                        impact: 'Enhance soil retention and biodiversity',
-                    },
-                    {
-                        id: 3,
-                        title: 'Install wildlife monitoring cameras',
-                        priority: 'low',
-                        impact: 'Track ecosystem recovery progress',
-                    },
-                ],
-            };
-            setProject(projectData);
-        }
-    }, [id]);
-
-    if (!project) {
-        return (
-            <DashboardLayout activePage="my-projects">
-                <div style={{ textAlign: 'center', padding: '4rem' }}>
-                    <div className="spinner"></div>
-                </div>
-            </DashboardLayout>
-        );
-    }
-
-    const getHealthColor = (health) => {
-        switch (health) {
-            case 'healthy':
-                return '#10b981';
-            case 'warning':
-                return '#f59e0b';
-            case 'critical':
-                return '#ef4444';
-            default:
-                return '#6b7280';
-        }
-    };
-
-    const getSeverityColor = (severity) => {
-        switch (severity) {
-            case 'high':
-                return '#ef4444';
-            case 'medium':
-                return '#f59e0b';
-            case 'low':
-                return '#3b82f6';
-            default:
-                return '#6b7280';
-        }
-    };
-
-    const getPriorityColor = (priority) => {
-        switch (priority) {
-            case 'high':
-                return '#ef4444';
-            case 'medium':
-                return '#f59e0b';
-            case 'low':
-                return '#3b82f6';
-            default:
-                return '#6b7280';
-        }
-    };
-
-    return (
-        <DashboardLayout activePage="my-projects">
-            <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-                {/* Back Button */}
-                <motion.button
-                    onClick={() => router.push('/my-projects')}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        padding: '0.75rem 1rem',
-                        borderRadius: '10px',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid var(--glass-border)',
-                        color: 'var(--text-secondary)',
-                        fontSize: '0.875rem',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        marginBottom: '2rem',
-                    }}
-                    whileHover={{ scale: 1.02, background: 'rgba(255, 255, 255, 0.15)' }}
-                    whileTap={{ scale: 0.98 }}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                >
-                    <ArrowLeft style={{ width: '16px', height: '16px' }} />
-                    Back to Projects
-                </motion.button>
-
-                {/* Project Summary */}
-                <motion.div
-                    className="glass-card"
-                    style={{ padding: '2rem', marginBottom: '2rem' }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1.5rem' }}>
-                        <div>
-                            <h1
-                                style={{
-                                    fontSize: '2rem',
-                                    fontWeight: '700',
-                                    color: 'var(--text-primary)',
-                                    marginBottom: '0.5rem',
-                                }}
-                            >
-                                {project.name}
-                            </h1>
-                            <p style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>{project.description}</p>
-                        </div>
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.75rem',
-                                padding: '1rem 1.5rem',
-                                borderRadius: '12px',
-                                background: `${getHealthColor(project.health)}20`,
-                                border: `2px solid ${getHealthColor(project.health)}`,
-                            }}
-                        >
-                            <Activity style={{ width: '24px', height: '24px', color: getHealthColor(project.health) }} />
-                            <div>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-                                    Health Score
-                                </p>
-                                <p
-                                    style={{
-                                        fontSize: '2rem',
-                                        fontWeight: '700',
-                                        color: getHealthColor(project.health),
-                                    }}
-                                >
-                                    {project.healthScore}%
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <MapPin style={{ width: '20px', height: '20px', color: 'var(--emerald-green)' }} />
-                            <div>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Region</p>
-                                <p style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)' }}>
-                                    {project.region}
-                                </p>
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <TreePine style={{ width: '20px', height: '20px', color: 'var(--emerald-green)' }} />
-                            <div>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Trees Planted</p>
-                                <p style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)' }}>
-                                    {project.treesPlanted.toLocaleString()}
-                                </p>
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <Calendar style={{ width: '20px', height: '20px', color: 'var(--emerald-green)' }} />
-                            <div>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Started</p>
-                                <p style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)' }}>
-                                    {formatDate(project.plantationDate)}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </motion.div>
-
-                {/* Health Timeline */}
-                <motion.div
-                    className="glass-card"
-                    style={{ padding: '2rem', marginBottom: '2rem' }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                >
-                    <h2
-                        style={{
-                            fontSize: '1.5rem',
-                            fontWeight: '600',
-                            color: 'var(--text-primary)',
-                            marginBottom: '1.5rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                        }}
-                    >
-                        <TrendingUp style={{ width: '24px', height: '24px', color: 'var(--emerald-green)' }} />
-                        Health Score Timeline
-                    </h2>
-                    <div style={{ display: 'flex', alignItems: 'end', gap: '1rem', height: '200px' }}>
-                        {project.healthTimeline.map((point, index) => (
-                            <motion.div
-                                key={index}
-                                style={{
-                                    flex: 1,
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                }}
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                transition={{ delay: 0.3 + index * 0.1 }}
-                            >
-                                <span style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--emerald-green)' }}>
-                                    {point.score}%
-                                </span>
-                                <div
-                                    style={{
-                                        width: '100%',
-                                        height: `${point.score}%`,
-                                        background: 'linear-gradient(180deg, var(--emerald-green), var(--bright-green))',
-                                        borderRadius: '8px 8px 0 0',
-                                        minHeight: '40px',
-                                    }}
-                                ></div>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{point.date}</span>
-                            </motion.div>
-                        ))}
-                    </div>
-                </motion.div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem' }}>
-                    {/* Risks */}
-                    <motion.div
-                        className="glass-card"
-                        style={{ padding: '2rem' }}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.3 }}
-                    >
-                        <h2
-                            style={{
-                                fontSize: '1.5rem',
-                                fontWeight: '600',
-                                color: 'var(--text-primary)',
-                                marginBottom: '1.5rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                            }}
-                        >
-                            <AlertTriangle style={{ width: '24px', height: '24px', color: '#f59e0b' }} />
-                            Active Risks
-                        </h2>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            {project.risks.map((risk) => (
-                                <motion.div
-                                    key={risk.id}
-                                    style={{
-                                        padding: '1rem',
-                                        borderRadius: '10px',
-                                        background: 'rgba(255, 255, 255, 0.05)',
-                                        border: `1px solid ${getSeverityColor(risk.severity)}40`,
-                                    }}
-                                    whileHover={{ scale: 1.02, background: 'rgba(255, 255, 255, 0.08)' }}
-                                >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)' }}>
-                                            {risk.title}
-                                        </h3>
-                                        <span
-                                            style={{
-                                                padding: '0.25rem 0.75rem',
-                                                borderRadius: '6px',
-                                                background: `${getSeverityColor(risk.severity)}20`,
-                                                color: getSeverityColor(risk.severity),
-                                                fontSize: '0.75rem',
-                                                fontWeight: '600',
-                                                textTransform: 'uppercase',
-                                            }}
-                                        >
-                                            {risk.severity}
-                                        </span>
-                                    </div>
-                                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                                        {risk.description}
-                                    </p>
-                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                        Detected: {formatDate(risk.date)}
-                                    </p>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </motion.div>
-
-                    {/* Recommended Actions */}
-                    <motion.div
-                        className="glass-card"
-                        style={{ padding: '2rem' }}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.3 }}
-                    >
-                        <h2
-                            style={{
-                                fontSize: '1.5rem',
-                                fontWeight: '600',
-                                color: 'var(--text-primary)',
-                                marginBottom: '1.5rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                            }}
-                        >
-                            <Lightbulb style={{ width: '24px', height: '24px', color: 'var(--emerald-green)' }} />
-                            Recommended Actions
-                        </h2>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            {project.recommendedActions.map((action) => (
-                                <motion.div
-                                    key={action.id}
-                                    style={{
-                                        padding: '1rem',
-                                        borderRadius: '10px',
-                                        background: 'rgba(255, 255, 255, 0.05)',
-                                        border: '1px solid var(--glass-border)',
-                                    }}
-                                    whileHover={{ scale: 1.02, background: 'rgba(16, 185, 129, 0.1)' }}
-                                >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)' }}>
-                                            {action.title}
-                                        </h3>
-                                        <span
-                                            style={{
-                                                padding: '0.25rem 0.75rem',
-                                                borderRadius: '6px',
-                                                background: `${getPriorityColor(action.priority)}20`,
-                                                color: getPriorityColor(action.priority),
-                                                fontSize: '0.75rem',
-                                                fontWeight: '600',
-                                                textTransform: 'uppercase',
-                                            }}
-                                        >
-                                            {action.priority}
-                                        </span>
-                                    </div>
-                                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                        Impact: {action.impact}
-                                    </p>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </motion.div>
-                </div>
-
-                {/* AI Insight */}
-                <motion.div
-                    className="glass-card"
-                    style={{
-                        padding: '2rem',
-                        marginTop: '2rem',
-                        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.05))',
-                        border: '1px solid var(--emerald-green)',
-                    }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                >
-                    <h2
-                        style={{
-                            fontSize: '1.5rem',
-                            fontWeight: '600',
-                            color: 'var(--emerald-green)',
-                            marginBottom: '1rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                        }}
-                    >
-                        <Sparkles style={{ width: '24px', height: '24px' }} />
-                        AI Insight
-                    </h2>
-                    <p style={{ fontSize: '1rem', color: 'var(--text-primary)', lineHeight: '1.6' }}>{project.aiInsight}</p>
-                </motion.div>
-            </div>
-        </DashboardLayout>
-    );
-}
+import { useState, useEffect } from 'react';import { useRouter } from 'next/router';import { motion } from 'framer-motion';import DashboardLayout from '../components/DashboardLayout';import {    ArrowLeft,    MapPin,    TreePine,    Calendar,    TrendingUp,    AlertTriangle,    CheckCircle,    Activity,    Lightbulb,    Sparkles,} from 'lucide-react';export default function ProjectDetail() {    const router = useRouter();    const { id } = router.query;    const [project, setProject] = useState(null);    const formatDate = (dateString) => {        const date = new Date(dateString);        const month = date.getMonth() + 1;        const day = date.getDate();        const year = date.getFullYear();        return `${month}/${day}/${year}`;    };    useEffect(() => {        if (id) {            const projectData = {                id: parseInt(id),                name: 'Amazon Reforestation Initiative',                region: 'Amazon Rainforest',                treesPlanted: 15000,                health: 'healthy',                healthScore: 92,                plantationDate: '2024-01-15',                description: 'Large-scale reforestation project focused on restoring biodiversity in the Amazon rainforest.',                healthTimeline: [                    { date: '2024-01', score: 75 },                    { date: '2024-02', score: 80 },                    { date: '2024-03', score: 85 },                    { date: '2024-04', score: 88 },                    { date: '2024-05', score: 92 },                ],                risks: [                    {                        id: 1,                        title: 'Deforestation in nearby area',                        severity: 'high',                        description: 'Increased logging activity detected 5km from project site',                        date: '2024-05-10',                    },                    {                        id: 2,                        title: 'Soil moisture below optimal',                        severity: 'medium',                        description: 'Recent dry spell affecting soil conditions',                        date: '2024-05-15',                    },                ],                aiInsight:                    'Based on current growth patterns and environmental conditions, your project is performing exceptionally well. The species diversity is optimal, and soil health indicators show strong improvement. Continue current maintenance schedule.',                recommendedActions: [                    {                        id: 1,                        title: 'Increase irrigation in sector 3',                        priority: 'high',                        impact: 'Improve survival rate by 15%',                    },                    {                        id: 2,                        title: 'Plant native ground cover',                        priority: 'medium',                        impact: 'Enhance soil retention and biodiversity',                    },                    {                        id: 3,                        title: 'Install wildlife monitoring cameras',                        priority: 'low',                        impact: 'Track ecosystem recovery progress',                    },                ],            };            setProject(projectData);        }    }, [id]);    if (!project) {        return (            <DashboardLayout activePage="my-projects">                <div style={{ textAlign: 'center', padding: '4rem' }}>                    <div className="spinner"></div>                </div>            </DashboardLayout>        );    }    const getHealthColor = (health) => {        switch (health) {            case 'healthy':                return '#10b981';            case 'warning':                return '#f59e0b';            case 'critical':                return '#ef4444';            default:                return '#6b7280';        }    };    const getSeverityColor = (severity) => {        switch (severity) {            case 'high':                return '#ef4444';            case 'medium':                return '#f59e0b';            case 'low':                return '#3b82f6';            default:                return '#6b7280';        }    };    const getPriorityColor = (priority) => {        switch (priority) {            case 'high':                return '#ef4444';            case 'medium':                return '#f59e0b';            case 'low':                return '#3b82f6';            default:                return '#6b7280';        }    };    return (        <DashboardLayout activePage="my-projects">            <div style={{ maxWidth: '1400px', margin: '0 auto' }}>                {}                <motion.button                    onClick={() => router.push('/my-projects')}                    style={{                        display: 'flex',                        alignItems: 'center',                        gap: '0.5rem',                        padding: '0.75rem 1rem',                        borderRadius: '10px',                        background: 'rgba(255, 255, 255, 0.1)',                        border: '1px solid var(--glass-border)',                        color: 'var(--text-secondary)',                        fontSize: '0.875rem',                        fontWeight: '600',                        cursor: 'pointer',                        marginBottom: '2rem',                    }}                    whileHover={{ scale: 1.02, background: 'rgba(255, 255, 255, 0.15)' }}                    whileTap={{ scale: 0.98 }}                    initial={{ opacity: 0, x: -20 }}                    animate={{ opacity: 1, x: 0 }}                >                    <ArrowLeft style={{ width: '16px', height: '16px' }} />                    Back to Projects                </motion.button>                {}                <motion.div                    className="glass-card"                    style={{ padding: '2rem', marginBottom: '2rem' }}                    initial={{ opacity: 0, y: 20 }}                    animate={{ opacity: 1, y: 0 }}                    transition={{ delay: 0.1 }}                >                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1.5rem' }}>                        <div>                            <h1                                style={{                                    fontSize: '2rem',                                    fontWeight: '700',                                    color: 'var(--text-primary)',                                    marginBottom: '0.5rem',                                }}                            >                                {project.name}                            </h1>                            <p style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>{project.description}</p>                        </div>                        <div                            style={{                                display: 'flex',                                alignItems: 'center',                                gap: '0.75rem',                                padding: '1rem 1.5rem',                                borderRadius: '12px',                                background: `${getHealthColor(project.health)}20`,                                border: `2px solid ${getHealthColor(project.health)}`,                            }}                        >                            <Activity style={{ width: '24px', height: '24px', color: getHealthColor(project.health) }} />                            <div>                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>                                    Health Score                                </p>                                <p                                    style={{                                        fontSize: '2rem',                                        fontWeight: '700',                                        color: getHealthColor(project.health),                                    }}                                >                                    {project.healthScore}%                                </p>                            </div>                        </div>                    </div>                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>                            <MapPin style={{ width: '20px', height: '20px', color: 'var(--emerald-green)' }} />                            <div>                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Region</p>                                <p style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)' }}>                                    {project.region}                                </p>                            </div>                        </div>                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>                            <TreePine style={{ width: '20px', height: '20px', color: 'var(--emerald-green)' }} />                            <div>                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Trees Planted</p>                                <p style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)' }}>                                    {project.treesPlanted.toLocaleString()}                                </p>                            </div>                        </div>                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>                            <Calendar style={{ width: '20px', height: '20px', color: 'var(--emerald-green)' }} />                            <div>                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Started</p>                                <p style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)' }}>                                    {formatDate(project.plantationDate)}                                </p>                            </div>                        </div>                    </div>                </motion.div>                {}                <motion.div                    className="glass-card"                    style={{ padding: '2rem', marginBottom: '2rem' }}                    initial={{ opacity: 0, y: 20 }}                    animate={{ opacity: 1, y: 0 }}                    transition={{ delay: 0.2 }}                >                    <h2                        style={{                            fontSize: '1.5rem',                            fontWeight: '600',                            color: 'var(--text-primary)',                            marginBottom: '1.5rem',                            display: 'flex',                            alignItems: 'center',                            gap: '0.5rem',                        }}                    >                        <TrendingUp style={{ width: '24px', height: '24px', color: 'var(--emerald-green)' }} />                        Health Score Timeline                    </h2>                    <div style={{ display: 'flex', alignItems: 'end', gap: '1rem', height: '200px' }}>                        {project.healthTimeline.map((point, index) => (                            <motion.div                                key={index}                                style={{                                    flex: 1,                                    display: 'flex',                                    flexDirection: 'column',                                    alignItems: 'center',                                    gap: '0.5rem',                                }}                                initial={{ height: 0, opacity: 0 }}                                animate={{ height: 'auto', opacity: 1 }}                                transition={{ delay: 0.3 + index * 0.1 }}                            >                                <span style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--emerald-green)' }}>                                    {point.score}%                                </span>                                <div                                    style={{                                        width: '100%',                                        height: `${point.score}%`,                                        background: 'linear-gradient(180deg, var(--emerald-green), var(--bright-green))',                                        borderRadius: '8px 8px 0 0',                                        minHeight: '40px',                                    }}                                ></div>                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{point.date}</span>                            </motion.div>                        ))}                    </div>                </motion.div>                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem' }}>                    {}                    <motion.div                        className="glass-card"                        style={{ padding: '2rem' }}                        initial={{ opacity: 0, x: -20 }}                        animate={{ opacity: 1, x: 0 }}                        transition={{ delay: 0.3 }}                    >                        <h2                            style={{                                fontSize: '1.5rem',                                fontWeight: '600',                                color: 'var(--text-primary)',                                marginBottom: '1.5rem',                                display: 'flex',                                alignItems: 'center',                                gap: '0.5rem',                            }}                        >                            <AlertTriangle style={{ width: '24px', height: '24px', color: '#f59e0b' }} />                            Active Risks                        </h2>                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>                            {project.risks.map((risk) => (                                <motion.div                                    key={risk.id}                                    style={{                                        padding: '1rem',                                        borderRadius: '10px',                                        background: 'rgba(255, 255, 255, 0.05)',                                        border: `1px solid ${getSeverityColor(risk.severity)}40`,                                    }}                                    whileHover={{ scale: 1.02, background: 'rgba(255, 255, 255, 0.08)' }}                                >                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>                                        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)' }}>                                            {risk.title}                                        </h3>                                        <span                                            style={{                                                padding: '0.25rem 0.75rem',                                                borderRadius: '6px',                                                background: `${getSeverityColor(risk.severity)}20`,                                                color: getSeverityColor(risk.severity),                                                fontSize: '0.75rem',                                                fontWeight: '600',                                                textTransform: 'uppercase',                                            }}                                        >                                            {risk.severity}                                        </span>                                    </div>                                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>                                        {risk.description}                                    </p>                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>                                        Detected: {formatDate(risk.date)}                                    </p>                                </motion.div>                            ))}                        </div>                    </motion.div>                    {}                    <motion.div                        className="glass-card"                        style={{ padding: '2rem' }}                        initial={{ opacity: 0, x: 20 }}                        animate={{ opacity: 1, x: 0 }}                        transition={{ delay: 0.3 }}                    >                        <h2                            style={{                                fontSize: '1.5rem',                                fontWeight: '600',                                color: 'var(--text-primary)',                                marginBottom: '1.5rem',                                display: 'flex',                                alignItems: 'center',                                gap: '0.5rem',                            }}                        >                            <Lightbulb style={{ width: '24px', height: '24px', color: 'var(--emerald-green)' }} />                            Recommended Actions                        </h2>                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>                            {project.recommendedActions.map((action) => (                                <motion.div                                    key={action.id}                                    style={{                                        padding: '1rem',                                        borderRadius: '10px',                                        background: 'rgba(255, 255, 255, 0.05)',                                        border: '1px solid var(--glass-border)',                                    }}                                    whileHover={{ scale: 1.02, background: 'rgba(16, 185, 129, 0.1)' }}                                >                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>                                        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)' }}>                                            {action.title}                                        </h3>                                        <span                                            style={{                                                padding: '0.25rem 0.75rem',                                                borderRadius: '6px',                                                background: `${getPriorityColor(action.priority)}20`,                                                color: getPriorityColor(action.priority),                                                fontSize: '0.75rem',                                                fontWeight: '600',                                                textTransform: 'uppercase',                                            }}                                        >                                            {action.priority}                                        </span>                                    </div>                                    <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>                                        Impact: {action.impact}                                    </p>                                </motion.div>                            ))}                        </div>                    </motion.div>                </div>                {}                <motion.div                    className="glass-card"                    style={{                        padding: '2rem',                        marginTop: '2rem',                        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.05))',                        border: '1px solid var(--emerald-green)',                    }}                    initial={{ opacity: 0, y: 20 }}                    animate={{ opacity: 1, y: 0 }}                    transition={{ delay: 0.4 }}                >                    <h2                        style={{                            fontSize: '1.5rem',                            fontWeight: '600',                            color: 'var(--emerald-green)',                            marginBottom: '1rem',                            display: 'flex',                            alignItems: 'center',                            gap: '0.5rem',                        }}                    >                        <Sparkles style={{ width: '24px', height: '24px' }} />                        AI Insight                    </h2>                    <p style={{ fontSize: '1rem', color: 'var(--text-primary)', lineHeight: '1.6' }}>{project.aiInsight}</p>                </motion.div>            </div>        </DashboardLayout>    );}

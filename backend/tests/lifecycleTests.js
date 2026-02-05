@@ -1,159 +1,1 @@
-import axios from 'axios';
-
-const BASE_URL = 'http://localhost:5000/api';
-let testUserId;
-let testProjectId;
-let testRegionId;
-
-const colors = {
-    green: '\x1b[32m',
-    red: '\x1b[31m',
-    yellow: '\x1b[33m',
-    blue: '\x1b[36m',
-    reset: '\x1b[0m'
-};
-
-const log = (message, color = 'reset') => {
-    console.log(`${colors[color]}${message}${colors.reset}`);
-};
-
-const testEndpoint = async (name, method, url, data = null) => {
-    try {
-        log(`\n🧪 Testing: ${name}`, 'blue');
-        const config = { method, url: `${BASE_URL}${url}` };
-        if (data) config.data = data;
-
-        const response = await axios(config);
-        log(`✓ ${name} - SUCCESS`, 'green');
-        return response.data;
-    } catch (error) {
-        log(`✗ ${name} - FAILED: ${error.response?.data?.message || error.message}`, 'red');
-        return null;
-    }
-};
-
-const runTests = async () => {
-    log('\n═══════════════════════════════════════', 'yellow');
-    log('  LIFECYCLE FEATURE API TESTS', 'yellow');
-    log('═══════════════════════════════════════\n', 'yellow');
-
-    log('📋 SETUP: Getting test data...', 'blue');
-
-    const mapData = await testEndpoint('Get Map Data', 'GET', '/map/data');
-    if (mapData && mapData.data.length > 0) {
-        testRegionId = mapData.data[0].id;
-        log(`  Region ID: ${testRegionId}`, 'green');
-    }
-
-    const projects = await testEndpoint('Get All Projects', 'GET', '/projects');
-    if (projects && projects.data.length > 0) {
-        testUserId = projects.data[0].manager._id || projects.data[0].manager;
-        testProjectId = projects.data[0]._id;
-        log(`  User ID: ${testUserId}`, 'green');
-        log(`  Project ID: ${testProjectId}`, 'green');
-    }
-
-    log('\n═══════════════════════════════════════', 'yellow');
-    log('  LIFECYCLE ENDPOINTS', 'yellow');
-    log('═══════════════════════════════════════', 'yellow');
-
-    await testEndpoint(
-        '1. Get User Projects',
-        'GET',
-        `/lifecycle/user/${testUserId}`
-    );
-
-    await testEndpoint(
-        '2. Get Project Lifecycle',
-        'GET',
-        `/lifecycle/${testProjectId}/lifecycle`
-    );
-
-    const newProject = await testEndpoint(
-        '3. Create Project Manually',
-        'POST',
-        '/lifecycle/create/manual',
-        {
-            name: 'Test Lifecycle Project',
-            location: {
-                type: 'Point',
-                coordinates: [73.88, 20.06]
-            },
-            regionId: testRegionId,
-            userId: testUserId,
-            plantationSize: 1000,
-            treeType: 'Teak',
-            metadata: {
-                plantedDate: new Date(),
-                soilType: 'loamy',
-                irrigationSystem: 'drip'
-            }
-        }
-    );
-
-    if (newProject && newProject.data) {
-        const newProjectId = newProject.data._id;
-        log(`  New Project ID: ${newProjectId}`, 'green');
-
-        await testEndpoint(
-            '4. Log Maintenance Action',
-            'POST',
-            `/lifecycle/${newProjectId}/maintenance`,
-            {
-                actionType: 'watering',
-                description: 'Regular watering - 200L',
-                userId: testUserId,
-                wasRecommended: false
-            }
-        );
-
-        await testEndpoint(
-            '5. Update Project Insights (AI)',
-            'POST',
-            `/lifecycle/${newProjectId}/insights/update`
-        );
-
-        await testEndpoint(
-            '6. Run Simulation (AI)',
-            'POST',
-            `/lifecycle/${newProjectId}/simulation`,
-            {
-                scenarioType: 'drought',
-                duration: 30,
-                parameters: {
-                    rainfallChange: -50,
-                    temperatureChange: 5,
-                    maintenanceFrequency: 'normal'
-                },
-                userId: testUserId
-            }
-        );
-    }
-
-    log('\n═══════════════════════════════════════', 'yellow');
-    log('  EXISTING FEATURES (VERIFICATION)', 'yellow');
-    log('═══════════════════════════════════════', 'yellow');
-
-    await testEndpoint(
-        '7. Get Map Data',
-        'GET',
-        '/map/data'
-    );
-
-    await testEndpoint(
-        '8. Get Critical Projects',
-        'GET',
-        '/projects/critical'
-    );
-
-    log('\n═══════════════════════════════════════', 'yellow');
-    log('  TEST SUMMARY', 'yellow');
-    log('═══════════════════════════════════════', 'yellow');
-    log('\n✅ All tests completed!', 'green');
-    log('Check results above for any failures.\n', 'blue');
-};
-
-runTests().catch(error => {
-    log(`\n❌ Test suite failed: ${error.message}`, 'red');
-    process.exit(1);
-});
+import axios from 'axios';const BASE_URL = 'http://localhost:5000/api';let testUserId;let testProjectId;let testRegionId;const colors = {    green: '\x1b[32m',    red: '\x1b[31m',    yellow: '\x1b[33m',    blue: '\x1b[36m',    reset: '\x1b[0m'};const log = (message, color = 'reset') => {    console.log(`${colors[color]}${message}${colors.reset}`);};const testEndpoint = async (name, method, url, data = null) => {    try {        log(`\n🧪 Testing: ${name}`, 'blue');        const config = { method, url: `${BASE_URL}${url}` };        if (data) config.data = data;        const response = await axios(config);        log(`✓ ${name} - SUCCESS`, 'green');        return response.data;    } catch (error) {        log(`✗ ${name} - FAILED: ${error.response?.data?.message || error.message}`, 'red');        return null;    }};const runTests = async () => {    log('\n═══════════════════════════════════════', 'yellow');    log('  LIFECYCLE FEATURE API TESTS', 'yellow');    log('═══════════════════════════════════════\n', 'yellow');    log('📋 SETUP: Getting test data...', 'blue');    const mapData = await testEndpoint('Get Map Data', 'GET', '/map/data');    if (mapData && mapData.data.length > 0) {        testRegionId = mapData.data[0].id;        log(`  Region ID: ${testRegionId}`, 'green');    }    const projects = await testEndpoint('Get All Projects', 'GET', '/projects');    if (projects && projects.data.length > 0) {        testUserId = projects.data[0].manager._id || projects.data[0].manager;        testProjectId = projects.data[0]._id;        log(`  User ID: ${testUserId}`, 'green');        log(`  Project ID: ${testProjectId}`, 'green');    }    log('\n═══════════════════════════════════════', 'yellow');    log('  LIFECYCLE ENDPOINTS', 'yellow');    log('═══════════════════════════════════════', 'yellow');    await testEndpoint(        '1. Get User Projects',        'GET',        `/lifecycle/user/${testUserId}`    );    await testEndpoint(        '2. Get Project Lifecycle',        'GET',        `/lifecycle/${testProjectId}/lifecycle`    );    const newProject = await testEndpoint(        '3. Create Project Manually',        'POST',        '/lifecycle/create/manual',        {            name: 'Test Lifecycle Project',            location: {                type: 'Point',                coordinates: [73.88, 20.06]            },            regionId: testRegionId,            userId: testUserId,            plantationSize: 1000,            treeType: 'Teak',            metadata: {                plantedDate: new Date(),                soilType: 'loamy',                irrigationSystem: 'drip'            }        }    );    if (newProject && newProject.data) {        const newProjectId = newProject.data._id;        log(`  New Project ID: ${newProjectId}`, 'green');        await testEndpoint(            '4. Log Maintenance Action',            'POST',            `/lifecycle/${newProjectId}/maintenance`,            {                actionType: 'watering',                description: 'Regular watering - 200L',                userId: testUserId,                wasRecommended: false            }        );        await testEndpoint(            '5. Update Project Insights (AI)',            'POST',            `/lifecycle/${newProjectId}/insights/update`        );        await testEndpoint(            '6. Run Simulation (AI)',            'POST',            `/lifecycle/${newProjectId}/simulation`,            {                scenarioType: 'drought',                duration: 30,                parameters: {                    rainfallChange: -50,                    temperatureChange: 5,                    maintenanceFrequency: 'normal'                },                userId: testUserId            }        );    }    log('\n═══════════════════════════════════════', 'yellow');    log('  EXISTING FEATURES (VERIFICATION)', 'yellow');    log('═══════════════════════════════════════', 'yellow');    await testEndpoint(        '7. Get Map Data',        'GET',        '/map/data'    );    await testEndpoint(        '8. Get Critical Projects',        'GET',        '/projects/critical'    );    log('\n═══════════════════════════════════════', 'yellow');    log('  TEST SUMMARY', 'yellow');    log('═══════════════════════════════════════', 'yellow');    log('\n✅ All tests completed!', 'green');    log('Check results above for any failures.\n', 'blue');};runTests().catch(error => {    log(`\n❌ Test suite failed: ${error.message}`, 'red');    process.exit(1);});
