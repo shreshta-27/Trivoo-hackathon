@@ -20,7 +20,8 @@ import {
     Shield,
     Users,
     BarChart3,
-    Map
+    Map,
+    Lightbulb
 } from 'lucide-react';
 
 const RealisticEarth = dynamic(() => import('../components/RealisticEarth'), {
@@ -65,29 +66,29 @@ export default function LandingPage() {
 
     const features = [
         {
-            icon: Activity,
-            title: 'Live Global Monitoring',
-            description: 'Track air quality, forest change, and wildlife movement in real-time.',
+            icon: Lightbulb,
+            title: 'Recommended Actions',
+            description: 'Get AI-powered recommendations prioritized by impact and urgency to improve your project health scores.',
         },
         {
-            icon: Brain,
-            title: 'Smart Analytics',
-            description: 'AI-powered predictions for climate risk and ecosystem shifts.',
-        },
-        {
-            icon: Eye,
-            title: 'Interactive 3D Earth View',
-            description: 'Visualize environmental data directly on a rotating globe.',
-        },
-        {
-            icon: Leaf,
-            title: 'Biodiversity Tracking',
-            description: 'Monitor endangered species and habitat health.',
+            icon: Zap,
+            title: 'Decision Sandbox',
+            description: 'Simulate environmental scenarios and predict impacts before taking action with interactive controls.',
         },
         {
             icon: Bell,
-            title: 'Climate Alerts',
-            description: 'Early warning system for pollution spikes and deforestation.',
+            title: 'Incidents & News',
+            description: 'Stay informed about environmental incidents, wildfires, deforestation, and climate events affecting your projects.',
+        },
+        {
+            icon: Brain,
+            title: 'AI Assistant',
+            description: 'Ask questions and get intelligent explanations about your projects, risks, and environmental insights.',
+        },
+        {
+            icon: Activity,
+            title: 'Real-time Monitoring',
+            description: 'Track project health, soil moisture, vegetation density, and environmental threats in real-time.',
         },
     ];
 

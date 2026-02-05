@@ -8,7 +8,8 @@ import {
     Zap,
     AlertCircle,
     Bot,
-    Leaf
+    Leaf,
+    Layers
 } from 'lucide-react';
 
 export default function Sidebar({ activePage = 'dashboard' }) {
@@ -22,6 +23,7 @@ export default function Sidebar({ activePage = 'dashboard' }) {
         { id: 'simulation-mode', name: 'Simulation Mode', icon: Zap, route: '/simulation-mode' },
         { id: 'incidents', name: 'Incidents / News', icon: AlertCircle, route: '/incidents' },
         { id: 'ai-assistant', name: 'AI Assistant', icon: Bot, route: '/ai-assistant' },
+        { id: 'futurescape', name: 'FutureScape', icon: Layers, route: '/futurescape' },
     ];
 
     return (
@@ -78,19 +80,23 @@ export default function Sidebar({ activePage = 'dashboard' }) {
                         }}
                     />
                 </motion.div>
-                <span
+                <motion.span
                     style={{
-                        fontSize: '1.5rem',
+                        fontSize: '1.25rem',
                         fontWeight: '700',
-                        letterSpacing: '0.02em',
-                        background: 'linear-gradient(135deg, var(--emerald-green), var(--bright-green))',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text',
+                        letterSpacing: '0.05em',
+                        color: '#22d3ee',
+                    }}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    whileHover={{
+                        letterSpacing: '0.1em',
+                        transition: { duration: 0.3 }
                     }}
                 >
                     TRIVO
-                </span>
+                </motion.span>
             </motion.div>
 
             {/* Navigation Items */}
@@ -144,10 +150,15 @@ export default function Sidebar({ activePage = 'dashboard' }) {
                     padding: '1rem',
                     borderTop: '1px solid var(--glass-border)',
                     marginTop: '1rem',
+                    cursor: 'pointer',
                 }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
+                whileHover={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                }}
+                onClick={() => router.push('/my-profile')}
             >
                 <div
                     style={{
