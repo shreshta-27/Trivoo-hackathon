@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import DashboardLayout from '../components/DashboardLayout';
 import { MapPin, Layers, Info, AlertTriangle } from 'lucide-react';
+import { map } from '../utils/api';
 
 // Dynamic import for Leaflet to avoid SSR issues
 const MapContainer = dynamic(
@@ -27,77 +28,14 @@ const Circle = dynamic(
     { ssr: false }
 );
 
-
 export default function MapView() {
     const router = useRouter();
     const { region } = router.query;
+    const [regions, setRegions] = useState([]);
     const [selectedRegion, setSelectedRegion] = useState(null);
     const [mapReady, setMapReady] = useState(false);
     const [isSatelliteView, setIsSatelliteView] = useState(false);
-
-    // Region data with coordinates (latitude, longitude)
-    const regions = [
-        {
-            id: 1,
-            name: 'Amazon Rainforest',
-            coordinates: [-3.4653, -62.2159],
-            projects: 12,
-            atRisk: 2,
-            status: 'warning',
-            description: 'Monitoring deforestation and biodiversity',
-            patchSize: 2000, // 2km radius in meters
-        },
-        {
-            id: 2,
-            name: 'Great Barrier Reef',
-            coordinates: [-18.2871, 147.6992],
-            projects: 8,
-            atRisk: 1,
-            status: 'stable',
-            description: 'Coral bleaching and marine ecosystem health',
-            patchSize: 2000,
-        },
-        {
-            id: 3,
-            name: 'Arctic Circle',
-            coordinates: [66.5639, -45.6469],
-            projects: 6,
-            atRisk: 3,
-            status: 'critical',
-            description: 'Ice melt and climate change monitoring',
-            patchSize: 2000,
-        },
-        {
-            id: 4,
-            name: 'Congo Basin',
-            coordinates: [-0.7264, 22.4784],
-            projects: 10,
-            atRisk: 0,
-            status: 'healthy',
-            description: 'Rainforest conservation and wildlife protection',
-            patchSize: 2000,
-        },
-        {
-            id: 5,
-            name: 'Himalayan Region',
-            coordinates: [28.5983, 83.9956],
-            projects: 7,
-            atRisk: 1,
-            status: 'stable',
-            description: 'Glacier monitoring and air quality',
-            patchSize: 2000,
-        },
-        {
-            id: 6,
-            name: 'Pacific Islands',
-            coordinates: [-17.6509, -149.4260],
-            projects: 5,
-            atRisk: 0,
-            status: 'healthy',
-            description: 'Sea level rise and coastal erosion',
-            patchSize: 2000,
-        },
-    ];
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         // Import Leaflet CSS
@@ -114,124 +52,102 @@ export default function MapView() {
             setMapReady(true);
         });
 
-        // Set selected region from query parameter
-        if (region) {
-            const regionData = regions.find((r) => r.id === parseInt(region));
+        fetchMapData();
+    }, []);
+
+    const fetchMapData = async () => {
+        try {
+            setLoading(true);
+            const res = await map.getData();
+            if (res.data?.data) {
+                const mappedRegions = res.data.data.map(r => ({
+                    id: r.id,
+                    name: r.name,
+                    coordinates: r.coordinates || [0, 0], // Ensure valid coords
+                    projects: r.projectCount,
+                    atRisk: r.projects ? r.projects.filter(p => p.riskLevel === 'critical' || p.riskLevel === 'high').length : 0,
+                    status: r.riskLevel === 'critical_stress' ? 'critical' : r.riskLevel === 'high_stress' ? 'warning' : 'stable', // Mapping logic
+                    description: r.metadata?.description || `Region monitoring ${r.projectCount} projects`,
+                    patchSize: 200000, // Hardcoded for visibility on world map (200km?), previously 2000
+                }));
+                setRegions(mappedRegions);
+            }
+        } catch (error) {
+            console.error("Failed to fetch map data", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (region && regions.length > 0) {
+            const regionData = regions.find((r) => r.id === region || r.id === parseInt(region));
             if (regionData) {
                 setSelectedRegion(regionData);
             }
         }
-    }, [region]);
+    }, [region, regions]);
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'critical':
-                return '#ef4444';
-            case 'warning':
-                return '#f59e0b';
-            case 'stable':
-                return '#3b82f6';
-            case 'healthy':
-                return '#10b981';
-            default:
-                return '#6b7280';
+            case 'critical': return '#ef4444';
+            case 'warning': return '#f59e0b';
+            case 'stable': return '#3b82f6';
+            case 'healthy': return '#10b981';
+            default: return '#6b7280';
         }
     };
 
     const getCircleColor = (status) => {
         switch (status) {
-            case 'critical':
-                return { color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.2 };
-            case 'warning':
-                return { color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.2 };
-            case 'stable':
-                return { color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.2 };
-            case 'healthy':
-                return { color: '#10b981', fillColor: '#10b981', fillOpacity: 0.2 };
-            default:
-                return { color: '#6b7280', fillColor: '#6b7280', fillOpacity: 0.2 };
+            case 'critical': return { color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.2 };
+            case 'warning': return { color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.2 };
+            case 'stable': return { color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.2 };
+            case 'healthy': return { color: '#10b981', fillColor: '#10b981', fillOpacity: 0.2 };
+            default: return { color: '#6b7280', fillColor: '#6b7280', fillOpacity: 0.2 };
         }
     };
 
-    // Default center (world view)
     const defaultCenter = [20, 0];
     const defaultZoom = 2;
-
-    // If a region is selected, center on it
     const mapCenter = selectedRegion ? selectedRegion.coordinates : defaultCenter;
     const mapZoom = selectedRegion ? 6 : defaultZoom;
 
     return (
         <DashboardLayout activePage="map-view">
-            <div style={{ maxWidth: '100%', height: 'calc(100vh - 4rem)' }}>
+            <div className="h-[calc(100vh-4rem)] w-full flex flex-col">
                 {/* Header */}
                 <motion.div
-                    style={{ marginBottom: '1.5rem' }}
+                    className="mb-6 px-4 sm:px-0"
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <h1
-                        style={{
-                            fontSize: '2.5rem',
-                            fontWeight: '700',
-                            marginBottom: '0.5rem',
-                            background: 'linear-gradient(135deg, var(--text-primary), var(--emerald-green))',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            backgroundClip: 'text',
-                        }}
-                    >
+                    <h1 className="text-3xl sm:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-br from-white to-emerald-400">
                         Global Map View
                     </h1>
-                    <p style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>
+                    <p className="text-base text-gray-400">
                         Interactive monitoring of environmental regions worldwide
                     </p>
                 </motion.div>
 
                 {/* Map Container */}
                 <motion.div
-                    className="glass-card"
-                    style={{
-                        height: 'calc(100% - 100px)',
-                        padding: '1rem',
-                        position: 'relative',
-                        overflow: 'hidden',
-                    }}
+                    className="glass-card flex-1 p-4 relative overflow-hidden rounded-xl mx-4 sm:mx-0 mb-4"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2, duration: 0.5 }}
                 >
                     {/* Map View Toggle Button */}
                     <motion.div
-                        style={{
-                            position: 'absolute',
-                            top: '1.5rem',
-                            right: '1.5rem',
-                            zIndex: 1000,
-                            display: 'flex',
-                            gap: '0.5rem',
-                        }}
+                        className="absolute top-6 right-6 z-[1000] flex gap-2"
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5 }}
                     >
                         <motion.button
                             onClick={() => setIsSatelliteView(false)}
-                            style={{
-                                padding: '0.75rem 1.25rem',
-                                borderRadius: '10px',
-                                background: !isSatelliteView
-                                    ? 'linear-gradient(135deg, var(--emerald-green), var(--bright-green))'
-                                    : 'rgba(255, 255, 255, 0.1)',
-                                border: !isSatelliteView ? 'none' : '1px solid var(--glass-border)',
-                                color: !isSatelliteView ? '#ffffff' : 'var(--text-secondary)',
-                                fontSize: '0.875rem',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                backdropFilter: 'blur(10px)',
-                                boxShadow: !isSatelliteView ? '0 4px 16px rgba(16, 185, 129, 0.4)' : 'none',
-                            }}
+                            className={`px-4 py-2 rounded-lg text-sm font-semibold backdrop-blur-md transition-all ${!isSatelliteView ? 'bg-gradient-to-br from-emerald-500 to-green-400 text-white shadow-lg shadow-emerald-500/40' : 'bg-white/10 text-gray-300 border border-white/10'}`}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                         >
@@ -239,20 +155,7 @@ export default function MapView() {
                         </motion.button>
                         <motion.button
                             onClick={() => setIsSatelliteView(true)}
-                            style={{
-                                padding: '0.75rem 1.25rem',
-                                borderRadius: '10px',
-                                background: isSatelliteView
-                                    ? 'linear-gradient(135deg, var(--emerald-green), var(--bright-green))'
-                                    : 'rgba(255, 255, 255, 0.1)',
-                                border: isSatelliteView ? 'none' : '1px solid var(--glass-border)',
-                                color: isSatelliteView ? '#ffffff' : 'var(--text-secondary)',
-                                fontSize: '0.875rem',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                backdropFilter: 'blur(10px)',
-                                boxShadow: isSatelliteView ? '0 4px 16px rgba(16, 185, 129, 0.4)' : 'none',
-                            }}
+                            className={`px-4 py-2 rounded-lg text-sm font-semibold backdrop-blur-md transition-all ${isSatelliteView ? 'bg-gradient-to-br from-emerald-500 to-green-400 text-white shadow-lg shadow-emerald-500/40' : 'bg-white/10 text-gray-300 border border-white/10'}`}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                         >
@@ -260,40 +163,33 @@ export default function MapView() {
                         </motion.button>
                     </motion.div>
 
-                    {mapReady ? (
+                    {mapReady && !loading ? (
                         <MapContainer
                             center={mapCenter}
                             zoom={mapZoom}
-                            style={{
-                                height: '100%',
-                                width: '100%',
-                                borderRadius: '12px',
-                                zIndex: 1,
-                            }}
+                            className="h-full w-full rounded-lg z-0"
                             scrollWheelZoom={true}
+                            key={selectedRegion ? selectedRegion.id : 'world'} // Force re-render on region change
                         >
-                            {/* Conditional Tile Layer based on view type */}
                             {isSatelliteView ? (
                                 <TileLayer
-                                    attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                                    attribution='Tiles &copy; Esri'
                                     url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                                 />
                             ) : (
                                 <TileLayer
-                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                                    attribution='&copy; OpenStreetMap & CARTO'
                                     url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                                 />
                             )}
 
-                            {/* Region Markers and Circles */}
-                            {regions.map((region) => {
-                                const circleStyle = getCircleColor(region.status);
+                            {regions.map((r) => {
+                                const circleStyle = getCircleColor(r.status);
                                 return (
-                                    <div key={region.id}>
-                                        {/* 2km radius circle */}
+                                    <div key={r.id}>
                                         <Circle
-                                            center={region.coordinates}
-                                            radius={region.patchSize}
+                                            center={r.coordinates}
+                                            radius={r.patchSize}
                                             pathOptions={{
                                                 color: circleStyle.color,
                                                 fillColor: circleStyle.fillColor,
@@ -301,94 +197,30 @@ export default function MapView() {
                                                 weight: 2,
                                             }}
                                         />
-
-                                        {/* Marker */}
                                         <Marker
-                                            position={region.coordinates}
+                                            position={r.coordinates}
                                             eventHandlers={{
-                                                click: () => setSelectedRegion(region),
+                                                click: () => setSelectedRegion(r),
                                             }}
                                         >
                                             <Popup>
-                                                <div style={{ minWidth: '200px' }}>
-                                                    <h3
-                                                        style={{
-                                                            fontSize: '1.125rem',
-                                                            fontWeight: '600',
-                                                            color: '#0F172A',
-                                                            marginBottom: '0.5rem',
-                                                        }}
-                                                    >
-                                                        {region.name}
-                                                    </h3>
-                                                    <p
-                                                        style={{
-                                                            fontSize: '0.875rem',
-                                                            color: '#64748b',
-                                                            marginBottom: '0.75rem',
-                                                        }}
-                                                    >
-                                                        {region.description}
-                                                    </p>
-                                                    <div
-                                                        style={{
-                                                            display: 'flex',
-                                                            gap: '1rem',
-                                                            marginBottom: '0.75rem',
-                                                        }}
-                                                    >
+                                                <div className="min-w-[200px]">
+                                                    <h3 className="text-lg font-bold text-slate-900 mb-2">{r.name}</h3>
+                                                    <p className="text-sm text-slate-500 mb-3">{r.description}</p>
+                                                    <div className="flex gap-4 mb-3">
                                                         <div>
-                                                            <p
-                                                                style={{
-                                                                    fontSize: '0.75rem',
-                                                                    color: '#94a3b8',
-                                                                }}
-                                                            >
-                                                                Projects
-                                                            </p>
-                                                            <p
-                                                                style={{
-                                                                    fontSize: '1.25rem',
-                                                                    fontWeight: '600',
-                                                                    color: '#10b981',
-                                                                }}
-                                                            >
-                                                                {region.projects}
-                                                            </p>
+                                                            <p className="text-xs text-slate-400">Projects</p>
+                                                            <p className="text-xl font-bold text-emerald-500">{r.projects}</p>
                                                         </div>
                                                         <div>
-                                                            <p
-                                                                style={{
-                                                                    fontSize: '0.75rem',
-                                                                    color: '#94a3b8',
-                                                                }}
-                                                            >
-                                                                At Risk
-                                                            </p>
-                                                            <p
-                                                                style={{
-                                                                    fontSize: '1.25rem',
-                                                                    fontWeight: '600',
-                                                                    color: region.atRisk > 0 ? '#f59e0b' : '#10b981',
-                                                                }}
-                                                            >
-                                                                {region.atRisk}
+                                                            <p className="text-xs text-slate-400">At Risk</p>
+                                                            <p className={`text-xl font-bold ${r.atRisk > 0 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                                                                {r.atRisk}
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    <div
-                                                        style={{
-                                                            display: 'inline-block',
-                                                            padding: '0.25rem 0.75rem',
-                                                            borderRadius: '6px',
-                                                            background: `${getStatusColor(region.status)}20`,
-                                                            color: getStatusColor(region.status),
-                                                            fontSize: '0.75rem',
-                                                            fontWeight: '600',
-                                                            textTransform: 'uppercase',
-                                                        }}
-                                                    >
-                                                        {region.status}
+                                                    <div className={`inline-block px-3 py-1 rounded-md text-xs font-bold uppercase bg-${getStatusColor(r.status)} bg-opacity-20 text-[${getStatusColor(r.status)}]`}>
+                                                        {r.status}
                                                     </div>
                                                 </div>
                                             </Popup>
@@ -398,96 +230,38 @@ export default function MapView() {
                             })}
                         </MapContainer>
                     ) : (
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                height: '100%',
-                                color: 'var(--text-secondary)',
-                            }}
-                        >
-                            <div className="spinner"></div>
+                        <div className="flex items-center justify-center h-full text-gray-400">
+                            <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                style={{ borderTopColor: 'transparent' }}
+                                className="w-12 h-12 border-4 border-emerald-500 rounded-full"
+                            />
                         </div>
                     )}
 
-                    {/* Legend */}
                     <motion.div
-                        style={{
-                            position: 'absolute',
-                            bottom: '2rem',
-                            right: '2rem',
-                            background: 'rgba(15, 23, 42, 0.9)',
-                            backdropFilter: 'blur(20px)',
-                            padding: '1rem',
-                            borderRadius: '12px',
-                            border: '1px solid var(--glass-border)',
-                            zIndex: 1000,
-                            minWidth: '200px',
-                        }}
+                        className="absolute bottom-8 right-8 bg-slate-900/90 backdrop-blur-xl p-4 rounded-xl border border-white/10 z-[1000] min-w-[200px]"
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5 }}
                     >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                            <Layers style={{ width: '16px', height: '16px', color: 'var(--emerald-green)' }} />
-                            <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--text-primary)' }}>
-                                Legend
-                            </h4>
+                        <div className="flex items-center gap-2 mb-3">
+                            <Layers className="w-4 h-4 text-emerald-500" />
+                            <h4 className="text-sm font-semibold text-white">Legend</h4>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <div
-                                    style={{
-                                        width: '12px',
-                                        height: '12px',
-                                        borderRadius: '50%',
-                                        background: '#10b981',
-                                    }}
-                                ></div>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Healthy</span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <div
-                                    style={{
-                                        width: '12px',
-                                        height: '12px',
-                                        borderRadius: '50%',
-                                        background: '#3b82f6',
-                                    }}
-                                ></div>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Stable</span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <div
-                                    style={{
-                                        width: '12px',
-                                        height: '12px',
-                                        borderRadius: '50%',
-                                        background: '#f59e0b',
-                                    }}
-                                ></div>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Warning</span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <div
-                                    style={{
-                                        width: '12px',
-                                        height: '12px',
-                                        borderRadius: '50%',
-                                        background: '#ef4444',
-                                    }}
-                                ></div>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Critical</span>
-                            </div>
-                            <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid var(--glass-border)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <Info style={{ width: '12px', height: '12px', color: 'var(--text-muted)' }} />
-                                    <span style={{ fontSize: '0.625rem', color: 'var(--text-muted)' }}>
-                                        Circle = 2km radius
-                                    </span>
+                        <div className="space-y-2">
+                            {[
+                                { color: '#10b981', label: 'Healthy' },
+                                { color: '#3b82f6', label: 'Stable' },
+                                { color: '#f59e0b', label: 'Warning' },
+                                { color: '#ef4444', label: 'Critical' },
+                            ].map((item) => (
+                                <div key={item.label} className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full" style={{ background: item.color }} />
+                                    <span className="text-xs text-gray-400">{item.label}</span>
                                 </div>
-                            </div>
+                            ))}
                         </div>
                     </motion.div>
                 </motion.div>

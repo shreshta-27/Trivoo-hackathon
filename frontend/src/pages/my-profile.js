@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import DashboardLayout from '../components/DashboardLayout';
+import { auth } from '../utils/api';
 import {
     User,
     Mail,
@@ -9,67 +10,130 @@ import {
     Save,
     Eye,
     EyeOff,
+    Loader,
+    Check
 } from 'lucide-react';
 
 export default function MyProfile() {
     const [isEditing, setIsEditing] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [message, setMessage] = useState(null);
 
     // Form states
-    const [name, setName] = useState('User');
-    const [email, setEmail] = useState('user@trivo.io');
-    const [password, setPassword] = useState('********');
-    const [profession, setProfession] = useState('Environmental Scientist');
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+        profession: '',
+    });
 
-    const handleSave = () => {
-        setIsEditing(false);
-        // Here you would typically save to backend
+    useEffect(() => {
+        fetchProfile();
+    }, []);
+
+    const fetchProfile = async () => {
+        try {
+            setLoading(true);
+            const res = await auth.getProfile();
+            if (res.data?.data) {
+                const user = res.data.data;
+                setFormData({
+                    name: user.name || '',
+                    email: user.email || '',
+                    password: '', // Don't populate password
+                    profession: user.profession || '',
+                });
+                // Also update localStorage if needed
+                localStorage.setItem('userInfo', JSON.stringify(user));
+            }
+        } catch (error) {
+            console.error("Failed to fetch profile", error);
+            // Fallback to local storage if API fails (e.g. offline)
+            const stored = localStorage.getItem('userInfo');
+            if (stored) {
+                const user = JSON.parse(stored);
+                setFormData(prev => ({
+                    ...prev,
+                    name: user.name || '',
+                    email: user.email || '',
+                    profession: user.profession || ''
+                }));
+            }
+        } finally {
+            setLoading(false);
+        }
     };
+
+    const handleSave = async () => {
+        try {
+            setSaving(true);
+            setMessage(null);
+
+            const payload = {
+                name: formData.name,
+                email: formData.email,
+                profession: formData.profession
+            };
+            if (formData.password) {
+                payload.password = formData.password;
+            }
+
+            const res = await auth.updateProfile(payload);
+            if (res.data?.success) {
+                setMessage({ type: 'success', text: 'Profile updated successfully!' });
+                setIsEditing(false);
+                // Update local storage
+                if (res.data.data) {
+                    localStorage.setItem('userInfo', JSON.stringify(res.data.data));
+                }
+                setTimeout(() => setMessage(null), 3000);
+            }
+        } catch (error) {
+            console.error("Failed to update profile", error);
+            setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to update profile' });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleChange = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    if (loading) {
+        return (
+            <DashboardLayout activePage="profile">
+                <div className="flex justify-center items-center h-[calc(100vh-100px)]">
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full"
+                    />
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     return (
         <DashboardLayout activePage="profile">
-            <div style={{
-                height: 'calc(100vh - 60px)',
-                overflow: 'auto',
-                padding: '2rem',
-            }}>
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <motion.div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '1rem',
-                        marginBottom: '2rem',
-                    }}
+                    className="flex items-center gap-4 mb-8"
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <div style={{
-                        width: '56px',
-                        height: '56px',
-                        borderRadius: '14px',
-                        background: 'linear-gradient(135deg, var(--emerald-green), var(--bright-green))',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4)',
-                    }}>
-                        <User style={{ width: '28px', height: '28px', color: '#ffffff' }} />
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-400 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                        <User className="w-7 h-7 text-white" />
                     </div>
                     <div>
-                        <h1 style={{
-                            fontSize: '2rem',
-                            fontWeight: '700',
-                            color: 'var(--text-primary)',
-                            marginBottom: '0.25rem',
-                        }}>
+                        <h1 className="text-3xl font-bold text-white mb-1">
                             My Profile
                         </h1>
-                        <p style={{
-                            fontSize: '1rem',
-                            color: 'var(--text-secondary)',
-                        }}>
+                        <p className="text-gray-400">
                             Manage your personal information
                         </p>
                     </div>
@@ -77,225 +141,130 @@ export default function MyProfile() {
 
                 {/* Profile Card */}
                 <motion.div
-                    className="glass-card"
-                    style={{
-                        maxWidth: '600px',
-                        margin: '0 auto',
-                        padding: '2.5rem',
-                    }}
+                    className="glass-card max-w-2xl mx-auto p-8 md:p-10"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2, duration: 0.5 }}
                 >
+                    {/* Message Toast */}
+                    {message && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${message.type === 'success'
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                    : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                }`}
+                        >
+                            {message.type === 'success' ? <Check className="w-5 h-5" /> : <Loader className="w-5 h-5" />}
+                            {message.text}
+                        </motion.div>
+                    )}
+
                     {/* Profile Avatar */}
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        marginBottom: '2rem',
-                    }}>
-                        <div style={{
-                            width: '100px',
-                            height: '100px',
-                            borderRadius: '50%',
-                            background: 'linear-gradient(135deg, var(--emerald-green), var(--bright-green))',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '2.5rem',
-                            fontWeight: '700',
-                            color: '#ffffff',
-                            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4)',
-                        }}>
-                            {name.charAt(0).toUpperCase()}
+                    <div className="flex justify-center mb-8">
+                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-500 to-green-400 flex items-center justify-center text-4xl font-bold text-white shadow-lg shadow-emerald-500/30">
+                            {formData.name.charAt(0).toUpperCase()}
                         </div>
                     </div>
 
                     {/* Form Fields */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div className="space-y-6">
                         {/* Name Field */}
                         <div>
-                            <label style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                fontSize: '0.9375rem',
-                                color: 'var(--emerald-green)',
-                                marginBottom: '0.75rem',
-                                fontWeight: '500',
-                            }}>
-                                <User style={{ width: '16px', height: '16px' }} />
+                            <label className="flex items-center gap-2 text-sm font-medium text-emerald-500 mb-2">
+                                <User className="w-4 h-4" />
                                 Name
                             </label>
                             <input
                                 type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
+                                value={formData.name}
+                                onChange={(e) => handleChange('name', e.target.value)}
                                 disabled={!isEditing}
-                                style={{
-                                    width: '100%',
-                                    padding: '0.875rem',
-                                    background: isEditing ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.02)',
-                                    border: `1px solid ${isEditing ? 'var(--emerald-green)' : 'var(--glass-border)'}`,
-                                    borderRadius: '10px',
-                                    color: 'var(--text-primary)',
-                                    fontSize: '1rem',
-                                    outline: 'none',
-                                    cursor: isEditing ? 'text' : 'not-allowed',
-                                }}
+                                className={`w-full px-4 py-3.5 rounded-xl text-white transition-all
+                                    ${isEditing
+                                        ? 'bg-white/5 border border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
+                                        : 'bg-white/5 border border-white/10 text-gray-400 cursor-not-allowed'
+                                    }`}
                             />
                         </div>
 
                         {/* Email Field */}
                         <div>
-                            <label style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                fontSize: '0.9375rem',
-                                color: 'var(--emerald-green)',
-                                marginBottom: '0.75rem',
-                                fontWeight: '500',
-                            }}>
-                                <Mail style={{ width: '16px', height: '16px' }} />
+                            <label className="flex items-center gap-2 text-sm font-medium text-emerald-500 mb-2">
+                                <Mail className="w-4 h-4" />
                                 Email
                             </label>
                             <input
                                 type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                value={formData.email}
+                                onChange={(e) => handleChange('email', e.target.value)}
                                 disabled={!isEditing}
-                                style={{
-                                    width: '100%',
-                                    padding: '0.875rem',
-                                    background: isEditing ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.02)',
-                                    border: `1px solid ${isEditing ? 'var(--emerald-green)' : 'var(--glass-border)'}`,
-                                    borderRadius: '10px',
-                                    color: 'var(--text-primary)',
-                                    fontSize: '1rem',
-                                    outline: 'none',
-                                    cursor: isEditing ? 'text' : 'not-allowed',
-                                }}
+                                className={`w-full px-4 py-3.5 rounded-xl text-white transition-all
+                                    ${isEditing
+                                        ? 'bg-white/5 border border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
+                                        : 'bg-white/5 border border-white/10 text-gray-400 cursor-not-allowed'
+                                    }`}
                             />
                         </div>
 
                         {/* Password Field */}
-                        <div>
-                            <label style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                fontSize: '0.9375rem',
-                                color: 'var(--emerald-green)',
-                                marginBottom: '0.75rem',
-                                fontWeight: '500',
-                            }}>
-                                <Lock style={{ width: '16px', height: '16px' }} />
-                                Password
-                            </label>
-                            <div style={{ position: 'relative' }}>
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    disabled={!isEditing}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.875rem',
-                                        paddingRight: '3rem',
-                                        background: isEditing ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.02)',
-                                        border: `1px solid ${isEditing ? 'var(--emerald-green)' : 'var(--glass-border)'}`,
-                                        borderRadius: '10px',
-                                        color: 'var(--text-primary)',
-                                        fontSize: '1rem',
-                                        outline: 'none',
-                                        cursor: isEditing ? 'text' : 'not-allowed',
-                                    }}
-                                />
-                                {isEditing && (
+                        {isEditing && (
+                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                                <label className="flex items-center gap-2 text-sm font-medium text-emerald-500 mb-2">
+                                    <Lock className="w-4 h-4" />
+                                    New Password (Optional)
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={formData.password}
+                                        onChange={(e) => handleChange('password', e.target.value)}
+                                        placeholder="Leave blank to keep current"
+                                        className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-emerald-500 text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 pr-12"
+                                    />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        style={{
-                                            position: 'absolute',
-                                            right: '0.875rem',
-                                            top: '50%',
-                                            transform: 'translateY(-50%)',
-                                            background: 'none',
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            color: 'var(--text-muted)',
-                                            padding: 0,
-                                        }}
+                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                                     >
                                         {showPassword ? (
-                                            <EyeOff style={{ width: '18px', height: '18px' }} />
+                                            <EyeOff className="w-5 h-5" />
                                         ) : (
-                                            <Eye style={{ width: '18px', height: '18px' }} />
+                                            <Eye className="w-5 h-5" />
                                         )}
                                     </button>
-                                )}
-                            </div>
-                        </div>
+                                </div>
+                            </motion.div>
+                        )}
 
                         {/* Profession Field */}
                         <div>
-                            <label style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                fontSize: '0.9375rem',
-                                color: 'var(--emerald-green)',
-                                marginBottom: '0.75rem',
-                                fontWeight: '500',
-                            }}>
-                                <Briefcase style={{ width: '16px', height: '16px' }} />
+                            <label className="flex items-center gap-2 text-sm font-medium text-emerald-500 mb-2">
+                                <Briefcase className="w-4 h-4" />
                                 Profession
                             </label>
                             <input
                                 type="text"
-                                value={profession}
-                                onChange={(e) => setProfession(e.target.value)}
+                                value={formData.profession}
+                                onChange={(e) => handleChange('profession', e.target.value)}
                                 disabled={!isEditing}
-                                style={{
-                                    width: '100%',
-                                    padding: '0.875rem',
-                                    background: isEditing ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.02)',
-                                    border: `1px solid ${isEditing ? 'var(--emerald-green)' : 'var(--glass-border)'}`,
-                                    borderRadius: '10px',
-                                    color: 'var(--text-primary)',
-                                    fontSize: '1rem',
-                                    outline: 'none',
-                                    cursor: isEditing ? 'text' : 'not-allowed',
-                                }}
+                                className={`w-full px-4 py-3.5 rounded-xl text-white transition-all
+                                    ${isEditing
+                                        ? 'bg-white/5 border border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
+                                        : 'bg-white/5 border border-white/10 text-gray-400 cursor-not-allowed'
+                                    }`}
                             />
                         </div>
                     </div>
 
                     {/* Action Buttons */}
-                    <div style={{
-                        display: 'flex',
-                        gap: '1rem',
-                        marginTop: '2rem',
-                    }}>
+                    <div className="flex gap-4 mt-8">
                         {!isEditing ? (
                             <motion.button
                                 onClick={() => setIsEditing(true)}
-                                style={{
-                                    flex: 1,
-                                    padding: '1rem',
-                                    background: 'linear-gradient(135deg, var(--emerald-green), var(--bright-green))',
-                                    border: 'none',
-                                    borderRadius: '12px',
-                                    color: '#ffffff',
-                                    fontSize: '1rem',
-                                    fontWeight: '600',
-                                    cursor: 'pointer',
-                                    boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4)',
-                                }}
-                                whileHover={{
-                                    scale: 1.02,
-                                    boxShadow: '0 12px 36px rgba(16, 185, 129, 0.6)',
-                                }}
+                                className="w-full py-4 rounded-xl bg-gradient-to-br from-emerald-500 to-green-400 text-white font-bold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all"
+                                whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                             >
                                 Edit Profile
@@ -304,44 +273,28 @@ export default function MyProfile() {
                             <>
                                 <motion.button
                                     onClick={handleSave}
-                                    style={{
-                                        flex: 1,
-                                        padding: '1rem',
-                                        background: 'linear-gradient(135deg, var(--emerald-green), var(--bright-green))',
-                                        border: 'none',
-                                        borderRadius: '12px',
-                                        color: '#ffffff',
-                                        fontSize: '1rem',
-                                        fontWeight: '600',
-                                        cursor: 'pointer',
-                                        boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '0.5rem',
-                                    }}
-                                    whileHover={{
-                                        scale: 1.02,
-                                        boxShadow: '0 12px 36px rgba(16, 185, 129, 0.6)',
-                                    }}
+                                    disabled={saving}
+                                    className="flex-1 py-4 rounded-xl bg-gradient-to-br from-emerald-500 to-green-400 text-white font-bold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all flex items-center justify-center gap-2"
+                                    whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                 >
-                                    <Save style={{ width: '18px', height: '18px' }} />
-                                    Save Changes
+                                    {saving ? (
+                                        <Loader className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <>
+                                            <Save className="w-5 h-5" />
+                                            Save Changes
+                                        </>
+                                    )}
                                 </motion.button>
                                 <motion.button
-                                    onClick={() => setIsEditing(false)}
-                                    style={{
-                                        flex: 1,
-                                        padding: '1rem',
-                                        background: 'rgba(255, 255, 255, 0.05)',
-                                        border: '1px solid var(--glass-border)',
-                                        borderRadius: '12px',
-                                        color: 'var(--text-secondary)',
-                                        fontSize: '1rem',
-                                        fontWeight: '600',
-                                        cursor: 'pointer',
+                                    onClick={() => {
+                                        setIsEditing(false);
+                                        setFormData(prev => ({ ...prev, password: '' })); // Clear password on cancel
+                                        fetchProfile(); // Reset fields to saved values
                                     }}
+                                    disabled={saving}
+                                    className="flex-1 py-4 rounded-xl bg-white/5 border border-white/10 text-white font-semibold hover:bg-white/10 transition-colors"
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                 >

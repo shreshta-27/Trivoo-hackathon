@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '../components/DashboardLayout';
 import dynamic from 'next/dynamic';
+import { projects as projectApi } from '../utils/api';
 import {
     Layers,
     MapPin,
@@ -15,7 +16,7 @@ import {
 
 const SatelliteMap = dynamic(() => import('../components/SatelliteMap'), {
     ssr: false,
-    loading: () => <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #0a192f, #0f4c3a)', borderRadius: '12px' }} />,
+    loading: () => <div className="w-full h-full bg-gradient-to-br from-[#0a192f] to-[#0f4c3a] rounded-xl animate-pulse" />,
 });
 
 export default function FutureScape() {
@@ -26,14 +27,38 @@ export default function FutureScape() {
     const [showResults, setShowResults] = useState(false);
     const [activeScenario, setActiveScenario] = useState('A');
     const canvasRef = useRef(null);
+    const [customAreas, setCustomAreas] = useState([]);
 
-    const areas = [
+    const defaultAreas = [
         { id: 'nagpur', name: 'Nagpur Outskirts', lat: 21.1458, lng: 79.0882 },
         { id: 'amazon', name: 'Amazon Basin', lat: -3.4653, lng: -62.2159 },
         { id: 'reef', name: 'Great Barrier Reef', lat: -18.2871, lng: 147.6992 },
     ];
 
+    const areas = [...defaultAreas, ...customAreas];
+
     const timeOptions = [1, 2, 5];
+
+    useEffect(() => {
+        fetchUserProjects();
+    }, []);
+
+    const fetchUserProjects = async () => {
+        try {
+            const res = await projectApi.getAll();
+            if (res.data?.data) {
+                const projectAreas = res.data.data.map(p => ({
+                    id: p._id || p.id,
+                    name: p.name,
+                    lat: p.location?.lat || 0,
+                    lng: p.location?.lng || 0
+                })).filter(p => p.lat !== 0 && p.lng !== 0);
+                setCustomAreas(projectAreas);
+            }
+        } catch (error) {
+            console.error("Failed to fetch projects for FutureScape", error);
+        }
+    };
 
     // Calculate impact based on tree count and time
     const calculateImpact = (treeCount, years) => {
@@ -81,8 +106,13 @@ export default function FutureScape() {
 
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+
+        const handleResize = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
 
         const particles = [];
         const colors = ['rgba(16, 185, 129, 0.3)', 'rgba(34, 211, 238, 0.3)'];
@@ -99,6 +129,7 @@ export default function FutureScape() {
         }
 
         const animate = () => {
+            // Use clearRect for transparency if needed, or fill with low alpha background
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             particles.forEach((p) => {
@@ -118,6 +149,8 @@ export default function FutureScape() {
         };
 
         animate();
+
+        return () => window.removeEventListener('resize', handleResize);
     }, []);
 
     const handleViewImpact = () => {
@@ -128,124 +161,56 @@ export default function FutureScape() {
         <DashboardLayout activePage="futurescape">
             <canvas
                 ref={canvasRef}
-                style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    zIndex: 0,
-                    pointerEvents: 'none',
-                }}
+                className="fixed inset-0 w-full h-full pointer-events-none z-0"
             />
 
-            <div style={{
-                height: 'calc(100vh - 60px)',
-                overflow: 'auto',
-                padding: '2rem',
-                position: 'relative',
-                zIndex: 1,
-            }}>
+            <div className="relative z-10 h-[calc(100vh-60px)] overflow-auto p-8">
                 {/* Header */}
                 <motion.div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '1rem',
-                        marginBottom: '2rem',
-                    }}
+                    className="flex items-center gap-4 mb-8"
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <div style={{
-                        width: '56px',
-                        height: '56px',
-                        borderRadius: '14px',
-                        background: 'linear-gradient(135deg, var(--emerald-green), var(--bright-green))',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4)',
-                    }}>
-                        <Layers style={{ width: '28px', height: '28px', color: '#ffffff' }} />
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-400 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                        <Layers className="w-7 h-7 text-white" />
                     </div>
                     <div>
-                        <h1 style={{
-                            fontSize: '2rem',
-                            fontWeight: '700',
-                            color: 'var(--text-primary)',
-                            marginBottom: '0.25rem',
-                        }}>
+                        <h1 className="text-3xl font-bold text-white mb-1">
                             FutureScape
                         </h1>
-                        <p style={{
-                            fontSize: '1rem',
-                            color: 'var(--text-secondary)',
-                        }}>
+                        <p className="text-base text-gray-400">
                             Compare plantation scenarios and visualize environmental impact
                         </p>
                     </div>
                 </motion.div>
 
                 {/* Main Content */}
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '400px 1fr',
-                    gap: '2rem',
-                    marginBottom: '2rem',
-                }}>
+                <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-8 mb-8">
                     {/* Control Panel */}
                     <motion.div
-                        className="glass-card"
-                        style={{
-                            padding: '2rem',
-                            height: 'fit-content',
-                        }}
+                        className="glass-card p-8 h-fit"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.2, duration: 0.5 }}
                     >
-                        <h2 style={{
-                            fontSize: '1.25rem',
-                            fontWeight: '600',
-                            color: 'var(--text-primary)',
-                            marginBottom: '1.5rem',
-                        }}>
+                        <h2 className="text-xl font-semibold text-white mb-6">
                             Scenario Configuration
                         </h2>
 
                         {/* Area Selection */}
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <label style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                fontSize: '0.9375rem',
-                                color: 'var(--emerald-green)',
-                                marginBottom: '0.75rem',
-                                fontWeight: '500',
-                            }}>
-                                <MapPin style={{ width: '16px', height: '16px' }} />
+                        <div className="mb-6">
+                            <label className="flex items-center gap-2 text-sm font-medium text-emerald-500 mb-3">
+                                <MapPin className="w-4 h-4" />
                                 Select Area
                             </label>
                             <select
                                 value={selectedArea}
                                 onChange={(e) => setSelectedArea(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    padding: '0.75rem',
-                                    background: 'rgba(255, 255, 255, 0.05)',
-                                    border: '1px solid var(--glass-border)',
-                                    borderRadius: '10px',
-                                    color: 'var(--text-primary)',
-                                    fontSize: '0.9375rem',
-                                    outline: 'none',
-                                    cursor: 'pointer',
-                                }}
+                                className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-emerald-500 transition-colors cursor-pointer"
                             >
                                 {areas.map((area) => (
-                                    <option key={area.id} value={area.id} style={{ background: '#0a192f' }}>
+                                    <option key={area.id} value={area.id} className="bg-[#0a192f] text-gray-300">
                                         {area.name}
                                     </option>
                                 ))}
@@ -253,37 +218,21 @@ export default function FutureScape() {
                         </div>
 
                         {/* Time Horizon */}
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <label style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                fontSize: '0.9375rem',
-                                color: 'var(--emerald-green)',
-                                marginBottom: '0.75rem',
-                                fontWeight: '500',
-                            }}>
-                                <Calendar style={{ width: '16px', height: '16px' }} />
+                        <div className="mb-6">
+                            <label className="flex items-center gap-2 text-sm font-medium text-emerald-500 mb-3">
+                                <Calendar className="w-4 h-4" />
                                 Time Horizon
                             </label>
-                            <div style={{ display: 'flex', gap: '0.75rem' }}>
+                            <div className="flex gap-3">
                                 {timeOptions.map((years) => (
                                     <motion.button
                                         key={years}
                                         onClick={() => setTimeHorizon(years)}
-                                        style={{
-                                            flex: 1,
-                                            padding: '0.75rem',
-                                            background: timeHorizon === years
-                                                ? 'linear-gradient(135deg, var(--emerald-green), var(--bright-green))'
-                                                : 'rgba(255, 255, 255, 0.05)',
-                                            border: `1px solid ${timeHorizon === years ? 'var(--emerald-green)' : 'var(--glass-border)'}`,
-                                            borderRadius: '10px',
-                                            color: timeHorizon === years ? '#ffffff' : 'var(--text-secondary)',
-                                            fontSize: '0.9375rem',
-                                            fontWeight: '600',
-                                            cursor: 'pointer',
-                                        }}
+                                        className={`flex-1 p-3 rounded-xl font-semibold text-sm transition-all border
+                                            ${timeHorizon === years
+                                                ? 'bg-gradient-to-br from-emerald-500 to-green-400 border-transparent text-white shadow-lg shadow-emerald-500/30'
+                                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                                            }`}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                     >
@@ -294,23 +243,9 @@ export default function FutureScape() {
                         </div>
 
                         {/* Scenario A */}
-                        <div style={{
-                            marginBottom: '1.5rem',
-                            padding: '1.25rem',
-                            background: 'rgba(16, 185, 129, 0.1)',
-                            border: '1px solid rgba(16, 185, 129, 0.3)',
-                            borderRadius: '12px',
-                        }}>
-                            <label style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                fontSize: '1rem',
-                                color: 'var(--emerald-green)',
-                                marginBottom: '0.75rem',
-                                fontWeight: '600',
-                            }}>
-                                <TreePine style={{ width: '18px', height: '18px' }} />
+                        <div className="mb-6 p-5 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                            <label className="flex items-center gap-2 text-base font-semibold text-emerald-500 mb-3">
+                                <TreePine className="w-4 h-4" />
                                 Scenario A
                             </label>
                             <input
@@ -319,45 +254,17 @@ export default function FutureScape() {
                                 onChange={(e) => setScenarioATrees(parseInt(e.target.value) || 0)}
                                 min="0"
                                 step="50"
-                                style={{
-                                    width: '100%',
-                                    padding: '0.75rem',
-                                    background: 'rgba(255, 255, 255, 0.05)',
-                                    border: '1px solid var(--glass-border)',
-                                    borderRadius: '10px',
-                                    color: 'var(--text-primary)',
-                                    fontSize: '1.125rem',
-                                    fontWeight: '600',
-                                    outline: 'none',
-                                }}
+                                className="w-full p-3 rounded-xl bg-white/5 border border-emerald-500/50 text-white font-semibold text-lg focus:outline-none focus:border-emerald-500"
                             />
-                            <p style={{
-                                fontSize: '0.8125rem',
-                                color: 'var(--text-muted)',
-                                marginTop: '0.5rem',
-                            }}>
+                            <p className="text-xs text-gray-400 mt-2">
                                 Number of trees to plant
                             </p>
                         </div>
 
                         {/* Scenario B */}
-                        <div style={{
-                            marginBottom: '2rem',
-                            padding: '1.25rem',
-                            background: 'rgba(34, 211, 238, 0.1)',
-                            border: '1px solid rgba(34, 211, 238, 0.3)',
-                            borderRadius: '12px',
-                        }}>
-                            <label style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                fontSize: '1rem',
-                                color: '#22d3ee',
-                                marginBottom: '0.75rem',
-                                fontWeight: '600',
-                            }}>
-                                <TreePine style={{ width: '18px', height: '18px' }} />
+                        <div className="mb-8 p-5 rounded-xl bg-cyan-500/10 border border-cyan-500/30">
+                            <label className="flex items-center gap-2 text-base font-semibold text-cyan-400 mb-3">
+                                <TreePine className="w-4 h-4" />
                                 Scenario B
                             </label>
                             <input
@@ -366,23 +273,9 @@ export default function FutureScape() {
                                 onChange={(e) => setScenarioBTrees(parseInt(e.target.value) || 0)}
                                 min="0"
                                 step="50"
-                                style={{
-                                    width: '100%',
-                                    padding: '0.75rem',
-                                    background: 'rgba(255, 255, 255, 0.05)',
-                                    border: '1px solid var(--glass-border)',
-                                    borderRadius: '10px',
-                                    color: 'var(--text-primary)',
-                                    fontSize: '1.125rem',
-                                    fontWeight: '600',
-                                    outline: 'none',
-                                }}
+                                className="w-full p-3 rounded-xl bg-white/5 border border-cyan-500/50 text-white font-semibold text-lg focus:outline-none focus:border-cyan-500"
                             />
-                            <p style={{
-                                fontSize: '0.8125rem',
-                                color: 'var(--text-muted)',
-                                marginTop: '0.5rem',
-                            }}>
+                            <p className="text-xs text-gray-400 mt-2">
                                 Number of trees to plant
                             </p>
                         </div>
@@ -390,22 +283,7 @@ export default function FutureScape() {
                         {/* View Impact Button */}
                         <motion.button
                             onClick={handleViewImpact}
-                            style={{
-                                width: '100%',
-                                padding: '1rem',
-                                background: 'linear-gradient(135deg, var(--emerald-green), var(--bright-green))',
-                                border: 'none',
-                                borderRadius: '12px',
-                                color: '#ffffff',
-                                fontSize: '1.0625rem',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.5rem',
-                            }}
+                            className="w-full py-4 rounded-xl bg-gradient-to-br from-emerald-500 to-green-400 text-white font-semibold shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2"
                             whileHover={{
                                 scale: 1.02,
                                 boxShadow: '0 12px 36px rgba(16, 185, 129, 0.6)',
@@ -414,53 +292,32 @@ export default function FutureScape() {
                             animate={!showResults ? { scale: [1, 1.05, 1] } : {}}
                             transition={{ repeat: !showResults ? Infinity : 0, duration: 2 }}
                         >
-                            <Sparkles style={{ width: '20px', height: '20px' }} />
+                            <Sparkles className="w-5 h-5" />
                             View Impact
                         </motion.button>
                     </motion.div>
 
                     {/* Map Visualization */}
                     <motion.div
-                        className="glass-card"
-                        style={{
-                            padding: '1.5rem',
-                            position: 'relative',
-                            minHeight: '500px',
-                        }}
+                        className="glass-card p-6 min-h-[500px]"
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.3, duration: 0.5 }}
                     >
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            marginBottom: '1.5rem',
-                        }}>
-                            <h2 style={{
-                                fontSize: '1.25rem',
-                                fontWeight: '600',
-                                color: 'var(--text-primary)',
-                            }}>
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-semibold text-white">
                                 Impact Visualization
                             </h2>
 
                             {showResults && (
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <div className="flex gap-2">
                                     <motion.button
                                         onClick={() => setActiveScenario('A')}
-                                        style={{
-                                            padding: '0.5rem 1rem',
-                                            background: activeScenario === 'A'
-                                                ? 'linear-gradient(135deg, var(--emerald-green), var(--bright-green))'
-                                                : 'rgba(255, 255, 255, 0.05)',
-                                            border: `1px solid ${activeScenario === 'A' ? 'var(--emerald-green)' : 'var(--glass-border)'}`,
-                                            borderRadius: '8px',
-                                            color: activeScenario === 'A' ? '#ffffff' : 'var(--text-secondary)',
-                                            fontSize: '0.875rem',
-                                            fontWeight: '600',
-                                            cursor: 'pointer',
-                                        }}
+                                        className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-colors
+                                            ${activeScenario === 'A'
+                                                ? 'bg-gradient-to-br from-emerald-500 to-green-400 border-transparent text-white'
+                                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                                            }`}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                     >
@@ -468,18 +325,11 @@ export default function FutureScape() {
                                     </motion.button>
                                     <motion.button
                                         onClick={() => setActiveScenario('B')}
-                                        style={{
-                                            padding: '0.5rem 1rem',
-                                            background: activeScenario === 'B'
-                                                ? 'linear-gradient(135deg, #22d3ee, #06b6d4)'
-                                                : 'rgba(255, 255, 255, 0.05)',
-                                            border: `1px solid ${activeScenario === 'B' ? '#22d3ee' : 'var(--glass-border)'}`,
-                                            borderRadius: '8px',
-                                            color: activeScenario === 'B' ? '#ffffff' : 'var(--text-secondary)',
-                                            fontSize: '0.875rem',
-                                            fontWeight: '600',
-                                            cursor: 'pointer',
-                                        }}
+                                        className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-colors
+                                            ${activeScenario === 'B'
+                                                ? 'bg-gradient-to-br from-cyan-400 to-cyan-500 border-transparent text-white'
+                                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                                            }`}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                     >
@@ -490,18 +340,12 @@ export default function FutureScape() {
                         </div>
 
                         {/* Satellite Map */}
-                        <div style={{
-                            position: 'relative',
-                            width: '100%',
-                            height: '500px',
-                            borderRadius: '12px',
-                            overflow: 'hidden',
-                        }}>
+                        <div className="relative w-full h-[500px] rounded-xl overflow-hidden">
                             {showResults ? (
                                 <AnimatePresence mode="wait">
                                     <motion.div
                                         key={activeScenario}
-                                        style={{ width: '100%', height: '100%' }}
+                                        className="w-full h-full"
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
@@ -515,21 +359,10 @@ export default function FutureScape() {
                                     </motion.div>
                                 </AnimatePresence>
                             ) : (
-                                <div style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    background: 'linear-gradient(135deg, #0a192f, #0f4c3a)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    borderRadius: '12px',
-                                }}>
-                                    <div style={{
-                                        textAlign: 'center',
-                                        color: 'var(--text-muted)',
-                                    }}>
-                                        <MapPin style={{ width: '48px', height: '48px', margin: '0 auto 1rem' }} />
-                                        <p style={{ fontSize: '1rem' }}>
+                                <div className="w-full h-full bg-gradient-to-br from-[#0a192f] to-[#0f4c3a] flex items-center justify-center rounded-xl">
+                                    <div className="text-center text-gray-400">
+                                        <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                                        <p className="text-lg">
                                             Configure scenarios and click "View Impact" to visualize
                                         </p>
                                     </div>
@@ -539,20 +372,11 @@ export default function FutureScape() {
                             {/* Risk indicator */}
                             {showResults && (
                                 <motion.div
+                                    className="absolute top-4 right-4 px-4 py-2 rounded-xl text-white text-sm font-bold shadow-lg z-[1000] backdrop-blur-md"
                                     style={{
-                                        position: 'absolute',
-                                        top: '1rem',
-                                        right: '1rem',
-                                        padding: '0.5rem 1rem',
                                         background: activeScenario === 'A'
                                             ? 'rgba(16, 185, 129, 0.9)'
                                             : 'rgba(34, 211, 238, 0.9)',
-                                        borderRadius: '8px',
-                                        color: '#ffffff',
-                                        fontSize: '0.875rem',
-                                        fontWeight: '600',
-                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                                        zIndex: 1000,
                                     }}
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
@@ -569,11 +393,7 @@ export default function FutureScape() {
                 <AnimatePresence>
                     {showResults && (
                         <motion.div
-                            style={{
-                                display: 'grid',
-                                gridTemplateColumns: '1fr 1fr',
-                                gap: '2rem',
-                            }}
+                            className="grid grid-cols-1 md:grid-cols-2 gap-8"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 20 }}
@@ -581,34 +401,18 @@ export default function FutureScape() {
                         >
                             {/* Scenario A Summary */}
                             <motion.div
-                                className="glass-card"
-                                style={{
-                                    padding: '2rem',
-                                    border: '2px solid rgba(16, 185, 129, 0.3)',
-                                }}
+                                className="glass-card p-8 border-2 border-emerald-500/30"
                                 whileHover={{ scale: 1.02 }}
                             >
-                                <h3 style={{
-                                    fontSize: '1.25rem',
-                                    fontWeight: '600',
-                                    color: 'var(--emerald-green)',
-                                    marginBottom: '0.5rem',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                }}>
-                                    <TreePine style={{ width: '20px', height: '20px' }} />
+                                <h3 className="text-xl font-bold text-emerald-500 mb-2 flex items-center gap-2">
+                                    <TreePine className="w-5 h-5" />
                                     Scenario A ({scenarioATrees} trees)
                                 </h3>
-                                <p style={{
-                                    fontSize: '0.875rem',
-                                    color: 'var(--text-muted)',
-                                    marginBottom: '1.5rem',
-                                }}>
+                                <p className="text-sm text-gray-400 mb-6">
                                     Impact after {timeHorizon} {timeHorizon === 1 ? 'year' : 'years'}
                                 </p>
 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <div className="space-y-3">
                                     {Object.entries(scenarioAImpact).map(([key, value]) => {
                                         if (key === 'coverageIntensity' || key === 'risk') return null;
                                         const icons = {
@@ -621,20 +425,9 @@ export default function FutureScape() {
                                         };
                                         const Icon = icons[key];
                                         return (
-                                            <div
-                                                key={key}
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'start',
-                                                    gap: '0.75rem',
-                                                }}
-                                            >
-                                                {Icon && <Icon style={{ width: '16px', height: '16px', color: 'var(--emerald-green)', marginTop: '0.25rem', flexShrink: 0 }} />}
-                                                <p style={{
-                                                    fontSize: '0.9375rem',
-                                                    color: 'var(--text-secondary)',
-                                                    lineHeight: '1.6',
-                                                }}>
+                                            <div key={key} className="flex items-start gap-3">
+                                                {Icon && <Icon className="w-4 h-4 text-emerald-500 mt-1 flex-shrink-0" />}
+                                                <p className="text-sm text-gray-300 leading-relaxed">
                                                     {value}
                                                 </p>
                                             </div>
@@ -645,34 +438,18 @@ export default function FutureScape() {
 
                             {/* Scenario B Summary */}
                             <motion.div
-                                className="glass-card"
-                                style={{
-                                    padding: '2rem',
-                                    border: '2px solid rgba(34, 211, 238, 0.3)',
-                                }}
+                                className="glass-card p-8 border-2 border-cyan-500/30"
                                 whileHover={{ scale: 1.02 }}
                             >
-                                <h3 style={{
-                                    fontSize: '1.25rem',
-                                    fontWeight: '600',
-                                    color: '#22d3ee',
-                                    marginBottom: '0.5rem',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                }}>
-                                    <TreePine style={{ width: '20px', height: '20px' }} />
+                                <h3 className="text-xl font-bold text-cyan-400 mb-2 flex items-center gap-2">
+                                    <TreePine className="w-5 h-5" />
                                     Scenario B ({scenarioBTrees} trees)
                                 </h3>
-                                <p style={{
-                                    fontSize: '0.875rem',
-                                    color: 'var(--text-muted)',
-                                    marginBottom: '1.5rem',
-                                }}>
+                                <p className="text-sm text-gray-400 mb-6">
                                     Impact after {timeHorizon} {timeHorizon === 1 ? 'year' : 'years'}
                                 </p>
 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <div className="space-y-3">
                                     {Object.entries(scenarioBImpact).map(([key, value]) => {
                                         if (key === 'coverageIntensity' || key === 'risk') return null;
                                         const icons = {
@@ -685,20 +462,9 @@ export default function FutureScape() {
                                         };
                                         const Icon = icons[key];
                                         return (
-                                            <div
-                                                key={key}
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'start',
-                                                    gap: '0.75rem',
-                                                }}
-                                            >
-                                                {Icon && <Icon style={{ width: '16px', height: '16px', color: '#22d3ee', marginTop: '0.25rem', flexShrink: 0 }} />}
-                                                <p style={{
-                                                    fontSize: '0.9375rem',
-                                                    color: 'var(--text-secondary)',
-                                                    lineHeight: '1.6',
-                                                }}>
+                                            <div key={key} className="flex items-start gap-3">
+                                                {Icon && <Icon className="w-4 h-4 text-cyan-400 mt-1 flex-shrink-0" />}
+                                                <p className="text-sm text-gray-300 leading-relaxed">
                                                     {value}
                                                 </p>
                                             </div>
