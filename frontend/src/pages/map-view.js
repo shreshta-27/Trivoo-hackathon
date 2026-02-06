@@ -59,7 +59,7 @@ export default function MapView() {
         try {
             setLoading(true);
             const res = await map.getData();
-            if (res.data?.data) {
+            if (res.data?.data && res.data.data.length > 0) {
                 const mappedRegions = res.data.data.map(r => ({
                     id: r.id,
                     name: r.name,
@@ -68,12 +68,87 @@ export default function MapView() {
                     atRisk: r.projects ? r.projects.filter(p => p.riskLevel === 'critical' || p.riskLevel === 'high').length : 0,
                     status: r.riskLevel === 'critical_stress' ? 'critical' : r.riskLevel === 'high_stress' ? 'warning' : 'stable', // Mapping logic
                     description: r.metadata?.description || `Region monitoring ${r.projectCount} projects`,
-                    patchSize: 200000, // Hardcoded for visibility on world map (200km?), previously 2000
+                    patchSize: 200000,
                 }));
                 setRegions(mappedRegions);
+            } else {
+                throw new Error("No data returned");
             }
         } catch (error) {
-            console.error("Failed to fetch map data", error);
+            console.error("Failed to fetch map data, using fallback", error);
+            // Fallback Data for Demo
+            setRegions([
+                {
+                    id: 1,
+                    name: "Amazon Rainforest",
+                    coordinates: [-3.4653, -62.2159],
+                    projects: 12,
+                    atRisk: 2,
+                    status: "warning",
+                    description: "Major reforestation initiative in the Amazon basin.",
+                    patchSize: 200000
+                },
+                {
+                    id: 2,
+                    name: "Central Africa",
+                    coordinates: [1.6, 23.5], // Congo Basin
+                    projects: 8,
+                    atRisk: 1,
+                    status: "stable",
+                    description: "Community-driven agroforestry projects.",
+                    patchSize: 200000
+                },
+                {
+                    id: 3,
+                    name: "Southeast Asia",
+                    coordinates: [1.3, 113.9], // Borneo
+                    projects: 5,
+                    atRisk: 3,
+                    status: "critical",
+                    description: "Peatland restoration and critical habitat protection.",
+                    patchSize: 200000
+                },
+                {
+                    id: 4,
+                    name: "Western Europe",
+                    coordinates: [46.2, 2.2], // France
+                    projects: 15,
+                    atRisk: 0,
+                    status: "healthy",
+                    description: "Urban greening and sustainable forestry.",
+                    patchSize: 150000
+                },
+                {
+                    id: 5,
+                    name: "Western Ghats",
+                    coordinates: [14.0, 75.0], // India (Maharashtra/Karnataka)
+                    projects: 18,
+                    atRisk: 4,
+                    status: "critical",
+                    description: "Biodiversity hotspot in India facing urbanization threats.",
+                    patchSize: 180000
+                },
+                {
+                    id: 6,
+                    name: "Sundarbans Mangroves",
+                    coordinates: [21.9, 88.9], // India/Bangladesh
+                    projects: 9,
+                    atRisk: 2,
+                    status: "warning",
+                    description: "Critical mangrove ecosystem protecting coastal areas.",
+                    patchSize: 160000
+                },
+                {
+                    id: 7,
+                    name: "Mumbai Urban Forest",
+                    coordinates: [19.0760, 72.8777], // Mumbai, Maharashtra
+                    projects: 6,
+                    atRisk: 1,
+                    status: "stable",
+                    description: "Aarey Colony and urban green cover initiatives.",
+                    patchSize: 100000
+                }
+            ]);
         } finally {
             setLoading(false);
         }

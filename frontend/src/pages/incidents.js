@@ -32,7 +32,7 @@ export default function Incidents() {
             setLoading(true);
             // Try to fetch user specific incidents/feed
             // If API fails or returns empty, we might want to show some global defaults or empty state
-            const res = await news.getUserIncidents();
+            const res = await news.getDashboard();
             if (res.data?.data) {
                 setIncidents(res.data.data.map(item => ({
                     id: item._id || item.id,

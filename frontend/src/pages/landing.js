@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { useAuth } from '../contexts/AuthContext';
 import dynamic from 'next/dynamic';
 import {
     Globe,
@@ -52,8 +53,16 @@ const AuthModal = dynamic(() => import('../components/AuthModal'), {
 
 export default function LandingPage() {
     const router = useRouter();
+    const { isAuthenticated, loading } = useAuth();
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [authView, setAuthView] = useState('login');
+
+    // Redirect to dashboard if already authenticated
+    useEffect(() => {
+        if (!loading && isAuthenticated) {
+            router.push('/dashboard');
+        }
+    }, [isAuthenticated, loading, router]);
 
     const openAuthModal = (view) => {
         setAuthView(view);

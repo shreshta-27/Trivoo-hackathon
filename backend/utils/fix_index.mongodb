@@ -1,0 +1,20 @@
+// MongoDB Shell Commands to Fix googleId Index
+// Run these commands in MongoDB Compass or mongosh
+
+// 1. Connect to your database
+use trivo
+
+// 2. Drop the existing non-sparse index
+db.users.dropIndex("googleId_1")
+
+// 3. Create a new sparse unique index
+db.users.createIndex({ googleId: 1 }, { unique: true, sparse: true })
+
+// 4. Clean up users with null or empty googleId
+db.users.updateMany(
+  { $or: [{ googleId: null }, { googleId: "" }] },
+  { $unset: { googleId: "" } }
+)
+
+// 5. Verify the index
+db.users.getIndexes()

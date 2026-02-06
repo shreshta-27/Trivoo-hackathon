@@ -51,7 +51,7 @@ export default function SimulationMode() {
         try {
             setLoadingProjects(true);
             const res = await projectApi.getAll();
-            if (res.data?.data) {
+            if (res.data?.data && res.data.data.length > 0) {
                 setProjectList(res.data.data.map(p => ({
                     id: p._id || p.id,
                     name: p.name,
@@ -60,9 +60,46 @@ export default function SimulationMode() {
                     health: calculateHealthStatus(p.healthScore),
                     healthScore: p.healthScore || 100,
                 })));
+            } else {
+                throw new Error("No projects found");
             }
         } catch (error) {
-            console.error("Failed to fetch projects", error);
+            console.error("Failed to fetch projects, using fallback", error);
+            // Fallback Data for Demo
+            setProjectList([
+                {
+                    id: 'demo-1',
+                    name: 'Amazon Preservation Alpha',
+                    region: 'South America',
+                    treesPlanted: 12500,
+                    health: 'healthy',
+                    healthScore: 92,
+                },
+                {
+                    id: 'demo-2',
+                    name: 'Borneo Reforestation',
+                    region: 'Southeast Asia',
+                    treesPlanted: 8400,
+                    health: 'critical',
+                    healthScore: 45,
+                },
+                {
+                    id: 'demo-3',
+                    name: 'Congo Basin Initiative',
+                    region: 'Central Africa',
+                    treesPlanted: 15600,
+                    health: 'warning',
+                    healthScore: 78,
+                },
+                {
+                    id: 'demo-4',
+                    name: 'Alpine Recovery',
+                    region: 'Europe',
+                    treesPlanted: 3200,
+                    health: 'healthy',
+                    healthScore: 98,
+                }
+            ]);
         } finally {
             setLoadingProjects(false);
         }
